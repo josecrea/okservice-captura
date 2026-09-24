@@ -1,0 +1,8 @@
+{
+  "name": "okservice-captura",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

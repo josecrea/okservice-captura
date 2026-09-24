@@ -1,0 +1,124 @@
+{
+  "id": "irve",
+  "titulo": "Punto de recarga de vehículo eléctrico",
+  "partida": "13.1",
+  "ejesObligatorios": ["ZONA", "METROS", "CANALIZ", "POTENC", "EQUIPO", "OBRA", "PAPELEO"],
+  "pasos": [
+    {
+      "id": "fachada",
+      "tipo": "foto",
+      "titulo": "Fachada y portal, desde la calle",
+      "ayuda": "Unifamiliar, bloque o garaje comunitario. Cambia el papeleo entero: en comunidad hay notificación previa.",
+      "cierra": ["ZONA"],
+      "obligatorio": true
+    },
+    {
+      "id": "contador",
+      "tipo": "foto",
+      "titulo": "Contador, CGP o centralización, de frente",
+      "ayuda": "Que se vea si es monofásico o trifásico y si queda sitio para el circuito nuevo.",
+      "cierra": ["POTENC"],
+      "obligatorio": true
+    },
+    {
+      "id": "iga",
+      "tipo": "foto",
+      "titulo": "IGA en primer plano, con el amperaje legible",
+      "ayuda": "Acércate hasta que el número se lea sin esfuerzo. Este dato decide la potencia de carga.",
+      "cierra": ["POTENC"],
+      "obligatorio": true
+    },
+    {
+      "id": "cuadro",
+      "tipo": "foto",
+      "titulo": "Cuadro eléctrico existente, con la puerta abierta",
+      "ayuda": "Se mira si caben el diferencial tipo A y el magnetotérmico del punto de recarga.",
+      "cierra": ["OBRA"],
+      "obligatorio": true
+    },
+    {
+      "id": "recorrido",
+      "tipo": "foto",
+      "titulo": "Recorrido de la línea",
+      "ayuda": "Por dónde va: techo visto, bandeja, tubo pasante libre o roza. Haz una foto por tramo.",
+      "cierra": ["CANALIZ"],
+      "obligatorio": true,
+      "repetible": true
+    },
+    {
+      "id": "techo",
+      "tipo": "foto",
+      "titulo": "Techo o patinillo por donde discurre",
+      "ayuda": "Si hay falso techo registrable o hay que picar.",
+      "cierra": ["ALTURA", "OBRA"],
+      "obligatorio": false
+    },
+    {
+      "id": "plaza",
+      "tipo": "foto",
+      "titulo": "Plaza de garaje, plano general",
+      "ayuda": "Con el coche dentro si se puede: da escala y sitúa la plaza respecto al cuadro.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "anclaje",
+      "tipo": "foto",
+      "titulo": "Punto exacto de anclaje del cargador",
+      "ayuda": "Ladrillo, hormigón o pladur cambian el anclaje. Si no hay pared, hará falta poste.",
+      "cierra": ["OBRA"],
+      "obligatorio": true
+    },
+    {
+      "id": "identificacion",
+      "tipo": "foto",
+      "titulo": "Número de plaza y placa de la comunidad",
+      "ayuda": "Va al informe y al expediente.",
+      "cierra": [],
+      "obligatorio": false
+    },
+    {
+      "id": "metros",
+      "tipo": "dato",
+      "titulo": "Metros del recorrido, del cuadro al cargador",
+      "ayuda": "Mídelo con cinta o cuentapasos. Una foto no mide, y este número decide buena parte del precio.",
+      "unidad": "m",
+      "cierra": ["METROS"],
+      "obligatorio": true
+    },
+    {
+      "id": "potencia",
+      "tipo": "pregunta",
+      "titulo": "Potencia de carga que quiere el cliente",
+      "opciones": [
+        "Solo preinstalación",
+        "3,7 kW monofásico",
+        "7,4 kW monofásico",
+        "11 kW trifásico",
+        "22 kW trifásico"
+      ],
+      "cierra": ["POTENC"],
+      "obligatorio": true
+    },
+    {
+      "id": "equipo",
+      "tipo": "pregunta",
+      "titulo": "¿Quién pone el cargador?",
+      "opciones": ["Lo aporta el cliente", "Lo ponemos nosotros"],
+      "cierra": ["EQUIPO"],
+      "obligatorio": true
+    },
+    {
+      "id": "papeleo",
+      "tipo": "pregunta",
+      "titulo": "Legalización",
+      "opciones": [
+        "No incluida",
+        "Boletín CIE",
+        "Boletín CIE y memoria técnica"
+      ],
+      "cierra": ["PAPELEO"],
+      "obligatorio": true
+    }
+  ]
+}
