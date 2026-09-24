@@ -40,6 +40,29 @@ móvil de verdad, en un sitio de verdad. Marca cada punto.
 - [ ] En la tabla, los metros salen como **⚠️ no se pudo en la visita**.
 - [ ] Vuelve atrás, escribe los metros, termina: ahora dice que cierra presupuesto.
 
+## 🔴 La cámara: lo único que NO se ha podido verificar aquí
+
+Los tests cubren la lógica (tope de tiempo, permiso denegado, cerrar las
+pistas), y el navegador automatizado confirma que **si la cámara falla, la
+visita continúa por el selector de archivos**. Pero la captura en vivo con una
+cámara real no se puede probar sin un móvil. Esto hay que mirarlo a mano:
+
+- [ ] El botón dice «Abriendo cámara…» un instante y luego **📷 Hacer foto**.
+      Si se queda en «Abriendo…» más de seis segundos, debe caer solo al
+      selector de archivos.
+- [ ] Se ve el encuadre en vivo **dentro de la app**, con el texto del paso visible.
+- [ ] Al disparar aparece la vista previa y el botón **Repetir**.
+- [ ] **Repetir** vuelve a abrir la cámara.
+- [ ] Sale la cámara **trasera**, no la frontal.
+- [ ] Con WhatsApp abierto usando la cámara, la app no se queda colgada.
+- [ ] Al salir del paso, **el piloto de la cámara se apaga** (si no, se come la batería).
+
+## Los desplegables
+
+- [ ] Debajo de cada foto aparecen sus desplegables.
+- [ ] Los obligatorios no dejan avanzar hasta elegir.
+- [ ] Lo elegido sale en el informe, sangrado bajo su foto.
+
 ## Las fotos
 
 - [ ] Fotografía un **IGA real** de un cuadro.
