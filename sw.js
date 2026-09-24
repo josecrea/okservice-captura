@@ -1,6 +1,6 @@
 // Cachea la aplicación para que arranque sin cobertura.
 // Sube el número de CACHE cada vez que cambien los ficheros de la lista.
-const CACHE = 'okservice-captura-v1';
+const CACHE = 'okservice-captura-v3';
 
 const FICHEROS = [
   './',
@@ -14,7 +14,13 @@ const FICHEROS = [
   './js/comprimir.js',
   './js/almacen.js',
   './js/informe.js',
-  './guiones/irve.json'
+  './js/camara.js',
+  './guiones/index.json',
+  './guiones/irve.json',
+  './guiones/cie.json',
+  './guiones/aire.json',
+  './guiones/averia.json',
+  './guiones/suministro.json'
 ];
 
 self.addEventListener('install', evento => {

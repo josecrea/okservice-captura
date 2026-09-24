@@ -28,8 +28,25 @@ export function construirInforme(guion, sesion) {
   const veredicto = evaluar(guion, sesion);
   const respuestas = sesion?.respuestas ?? {};
 
-  const filas = guion.pasos.map(paso => {
-    const respuesta = respuestas[paso.id];
+  const filas = [];
+  for (const paso of guion.pasos) {
+    filas.push(filaDe(paso, respuestas[paso.id]));
+    // Los desplegables van justo debajo de su foto, sangrados: son lo que el
+    // técnico vio y la imagen no prueba.
+    for (const campo of paso.campos ?? []) {
+      const r = respuestas[`${paso.id}.${campo.id}`];
+      filas.push({
+        id: `${paso.id}.${campo.id}`,
+        titulo: campo.titulo,
+        texto: r?.origen === 'no_pudo' ? 'No se pudo resolver' : (r?.valor ?? '—'),
+        origen: r?.origen === 'no_pudo' ? 'no_pudo' : (r?.valor ? 'tecleado' : 'sin_resolver'),
+        cierra: campo.cierra ?? [],
+        anidado: true
+      });
+    }
+  }
+
+  function filaDe(paso, respuesta) {
     const resuelta = respuesta !== undefined && respuesta.valor !== undefined && respuesta.valor !== null && respuesta.valor !== '';
     // «No se pudo» y «se quedó sin responder» son cosas distintas, y el
     // informe las separa: una es una decisión del técnico, la otra un olvido.
@@ -43,7 +60,7 @@ export function construirInforme(guion, sesion) {
       origen,
       cierra: paso.cierra ?? []
     };
-  });
+  }
 
   const informe = {
     titulo: guion.titulo,
@@ -65,8 +82,8 @@ function aHtml(inf) {
     : `<p class="completo">Todos los datos de la partida quedaron resueltos en la visita.</p>`;
 
   const filas = inf.filas.map(f => `
-    <tr>
-      <td>${escapar(f.titulo)}</td>
+    <tr${f.anidado ? ' class="anidada"' : ''}>
+      <td>${f.anidado ? '<span class="sangria">↳</span> ' : ''}${escapar(f.titulo)}</td>
       <td>${escapar(f.texto)}</td>
       <td>${escapar(ETIQUETA_ORIGEN[f.origen] ?? f.origen)}</td>
     </tr>`).join('');
@@ -82,6 +99,8 @@ h1{font-size:1.5rem;margin:0 0 .25rem}
 table{width:100%;border-collapse:collapse;margin-top:1.5rem}
 th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid #ddd;vertical-align:top}
 th{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:#666}
+.anidada td{color:#555;font-size:.92em;border-bottom-style:dotted}
+.sangria{color:#aaa;margin-right:.25rem}
 .huecos{background:#fff4f2;border-left:4px solid #c0392b;padding:.85rem 1rem;border-radius:4px}
 .completo{background:#f1f9f3;border-left:4px solid #27803f;padding:.85rem 1rem;border-radius:4px}
 footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid #ddd;font-size:.8rem;color:#666}

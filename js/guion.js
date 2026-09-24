@@ -45,6 +45,35 @@ export function validarGuion(guion) {
       if (!EJES.includes(eje)) fallos.push(`eje desconocido en el paso ${paso.id}: ${eje}`);
       cerrados.add(eje);
     }
+
+    // Campos: los desplegables que acompañan a un paso.
+    const campos = paso.campos ?? [];
+    if (!Array.isArray(campos)) {
+      fallos.push(`el campo campos del paso ${paso.id} no es una lista`);
+      continue;
+    }
+    const idsCampo = new Set();
+    for (const campo of campos) {
+      if (!campo.id) {
+        fallos.push(`hay un campo sin identificador en el paso ${paso.id}`);
+        continue;
+      }
+      if (idsCampo.has(campo.id)) {
+        fallos.push(`campo repetido en el paso ${paso.id}: ${campo.id}`);
+      }
+      idsCampo.add(campo.id);
+
+      if (!campo.titulo) fallos.push(`el campo ${paso.id}.${campo.id} no tiene título`);
+      if (!Array.isArray(campo.opciones) || campo.opciones.length < 2) {
+        fallos.push(`el campo ${paso.id}.${campo.id} necesita al menos dos opciones`);
+      }
+      for (const eje of campo.cierra ?? []) {
+        if (!EJES.includes(eje)) {
+          fallos.push(`eje desconocido en el campo ${paso.id}.${campo.id}: ${eje}`);
+        }
+        cerrados.add(eje);
+      }
+    }
   }
 
   for (const eje of guion.ejesObligatorios) {

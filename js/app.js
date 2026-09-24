@@ -1,41 +1,66 @@
 import { validarGuion } from './guion.js';
 import { evaluar } from './compuerta.js';
-import { comprimirFoto } from './comprimir.js';
+import { comprimirFoto, calcularDimensiones, CALIDAD } from './comprimir.js';
 import { guardarSesion } from './almacen.js';
 import { construirInforme } from './informe.js';
+import { Camara } from './camara.js';
 
 let guion = null;
 let sesion = null;
 let indice = 0;
+const camara = new Camara();
 
 const $ = id => document.getElementById(id);
 
+// ── Arranque ────────────────────────────────────────────────────────────
+
 async function arrancar() {
-  const respuesta = await fetch('guiones/irve.json');
-  guion = await respuesta.json();
+  const indiceActividades = await (await fetch('guiones/index.json')).json();
+  pintarMenu(indiceActividades.actividades);
 
-  const fallos = validarGuion(guion);
-  if (fallos.length) {
-    document.body.innerHTML = `<h1>El guion tiene errores</h1><pre>${fallos.join('\n')}</pre>`;
-    return;
-  }
-
-  $('empezar').addEventListener('click', empezar);
   $('siguiente').addEventListener('click', () => avanzar(1));
   $('atras').addEventListener('click', () => avanzar(-1));
   $('saltar').addEventListener('click', noPude);
   $('ver-informe').addEventListener('click', verInforme);
+  $('otra').addEventListener('click', () => location.reload());
 }
 
-function empezar() {
+function pintarMenu(actividades) {
+  const menu = $('menu-actividades');
+  menu.innerHTML = '';
+  for (const act of actividades) {
+    const item = document.createElement('li');
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'actividad';
+    boton.innerHTML = `<span class="icono">${act.icono}</span>
+      <span class="nombre">${act.titulo}</span>
+      <span class="partida">${act.partida}</span>`;
+    boton.addEventListener('click', () => empezar(act.id));
+    item.appendChild(boton);
+    menu.appendChild(item);
+  }
+}
+
+async function empezar(idActividad) {
+  guion = await (await fetch(`guiones/${idActividad}.json`)).json();
+
+  const fallos = validarGuion(guion);
+  if (fallos.length) {
+    alert(`El guion de ${idActividad} tiene errores:\n\n${fallos.join('\n')}`);
+    return;
+  }
+
   sesion = {
-    id: `irve-${Date.now()}`,
+    id: `${guion.id}-${Date.now()}`,
     guion: guion.id,
     cliente: $('cliente').value.trim(),
     creada: new Date().toISOString(),
     respuestas: {}
   };
   indice = 0;
+
+  $('cabecera').textContent = guion.titulo;
   $('pantalla-inicio').hidden = true;
   $('pantalla-paso').hidden = false;
   pintarPaso();
@@ -49,12 +74,16 @@ function pedirUbicacion() {
       sesion.gps = { lat: pos.coords.latitude, lon: pos.coords.longitude };
       guardarSesion(sesion);
     },
-    () => { /* sin GPS se sigue: la zona se teclea */ },
+    () => { /* sin GPS se sigue: el municipio se teclea */ },
     { timeout: 10000 }
   );
 }
 
+// ── El paso ─────────────────────────────────────────────────────────────
+
 function pintarPaso() {
+  camara.cerrar($('video-camara'));
+
   const paso = guion.pasos[indice];
   $('progreso').textContent = `Paso ${indice + 1} de ${guion.pasos.length}`;
   $('paso-titulo').innerHTML = paso.obligatorio
@@ -73,50 +102,209 @@ function pintarPaso() {
   const control = $('paso-control');
   control.innerHTML = '';
 
-  if (paso.tipo === 'foto') pintarFoto(control, paso);
-  else if (paso.tipo === 'dato') pintarDato(control, paso);
-  else pintarPregunta(control, paso);
+  if (paso.tipo === 'foto') {
+    pintarFoto(control, paso);        // ya pinta sus campos al final
+  } else {
+    if (paso.tipo === 'dato') pintarDato(control, paso);
+    else pintarPregunta(control, paso);
+    pintarCampos(control, paso);
+  }
 
   refrescarSiguiente();
 }
 
+// ── Foto: cámara en vivo, con el selector de archivos como red de seguridad ──
+
 function pintarFoto(control, paso) {
+  const visor = document.createElement('div');
+  visor.className = 'visor';
+
+  const video = document.createElement('video');
+  video.id = 'video-camara';
+  video.playsInline = true;
+  video.muted = true;
+  visor.appendChild(video);
+
+  const previa = document.createElement('img');
+  previa.className = 'vistaprevia';
+  previa.hidden = true;
+  visor.appendChild(previa);
+
+  control.appendChild(visor);
+
+  const acciones = document.createElement('div');
+  acciones.className = 'acciones-foto';
+  control.appendChild(acciones);
+
+  // Nace apagado: la cámara tarda un momento en dar imagen, y un botón que
+  // parece listo antes de tiempo devuelve un error que nadie sabe interpretar.
+  const disparar = document.createElement('button');
+  disparar.type = 'button';
+  disparar.className = 'disparador';
+  disparar.textContent = 'Abriendo cámara…';
+  disparar.disabled = true;
+  acciones.appendChild(disparar);
+
+  const repetir = document.createElement('button');
+  repetir.type = 'button';
+  repetir.className = 'secundario';
+  repetir.textContent = 'Repetir';
+  repetir.hidden = true;
+  acciones.appendChild(repetir);
+
+  // La alternativa siempre está: sin permiso de cámara, o desde el ordenador.
+  //
+  // El texto vive en su propio <span>. Escribir en el textContent del <label>
+  // borraría sus hijos —incluido el <input>— y dejaría al técnico con un
+  // botón que no hace nada justo cuando la cámara ya le ha fallado.
+  const etiquetaArchivo = document.createElement('label');
+  etiquetaArchivo.className = 'desde-archivo';
+  const textoArchivo = document.createElement('span');
+  textoArchivo.textContent = 'Elegir una foto ya hecha';
+  etiquetaArchivo.appendChild(textoArchivo);
   const entrada = document.createElement('input');
   entrada.type = 'file';
   entrada.accept = 'image/*';
   entrada.capture = 'environment';
+  entrada.hidden = true;
+  etiquetaArchivo.appendChild(entrada);
+  control.appendChild(etiquetaArchivo);
+
+  const mostrarFoto = async blob => {
+    sesion.respuestas[paso.id] = { valor: blob, origen: 'foto', bytes: blob.size };
+    await guardarSesion(sesion);
+    previa.src = URL.createObjectURL(blob);
+    previa.hidden = false;
+    video.hidden = true;
+    disparar.hidden = true;
+    repetir.hidden = false;
+    camara.cerrar(video);
+    refrescarSiguiente();
+  };
+
+  const abrirCamara = async () => {
+    disparar.disabled = true;
+    disparar.textContent = 'Abriendo cámara…';
+    try {
+      await camara.abrir(video);
+      video.hidden = false;
+      disparar.hidden = false;
+      disparar.disabled = false;
+      disparar.textContent = '📷 Hacer foto';
+    } catch {
+      // Sin cámara la visita continúa: se sube desde archivo.
+      visor.hidden = true;
+      disparar.hidden = true;
+      etiquetaArchivo.classList.add('unica-via');
+      textoArchivo.textContent = '📷 Hacer o elegir foto';
+    }
+  };
+
+  disparar.addEventListener('click', async () => {
+    try {
+      const blob = await camara.disparar(video, calcularDimensiones, CALIDAD);
+      await mostrarFoto(blob);
+    } catch (e) {
+      alert(`No se pudo hacer la foto: ${e.message}`);
+    }
+  });
+
+  repetir.addEventListener('click', async () => {
+    delete sesion.respuestas[paso.id];
+    await guardarSesion(sesion);
+    previa.hidden = true;
+    repetir.hidden = true;
+    visor.hidden = false;
+    refrescarSiguiente();
+    abrirCamara();
+  });
+
   entrada.addEventListener('change', async () => {
     const fichero = entrada.files?.[0];
     if (!fichero) return;
-    const blob = await comprimirFoto(fichero);
-    sesion.respuestas[paso.id] = { valor: blob, origen: 'foto', bytes: blob.size };
-    await guardarSesion(sesion);
-
-    const previa = control.querySelector('.vistaprevia') ?? document.createElement('img');
-    previa.className = 'vistaprevia';
-    previa.src = URL.createObjectURL(blob);
-    control.appendChild(previa);
-    refrescarSiguiente();
+    await mostrarFoto(await comprimirFoto(fichero));
   });
-  control.appendChild(entrada);
 
   const guardada = sesion.respuestas[paso.id];
   if (guardada?.valor instanceof Blob) {
-    const previa = document.createElement('img');
-    previa.className = 'vistaprevia';
     previa.src = URL.createObjectURL(guardada.valor);
-    control.appendChild(previa);
+    previa.hidden = false;
+    video.hidden = true;
+    disparar.hidden = true;
+    repetir.hidden = false;
+  } else {
+    abrirCamara();
+  }
+
+  pintarCampos(control, paso);
+}
+
+// Los desplegables que acompañan a un paso. Capturan lo que el técnico ve y
+// la foto no prueba: dónde está el contador, si queda hueco en el cuadro.
+// Cierran eje por su cuenta, así que no dependen de que la imagen se lea bien.
+function pintarCampos(control, paso) {
+  for (const campo of paso.campos ?? []) {
+    const clave = `${paso.id}.${campo.id}`;
+
+    const grupo = document.createElement('div');
+    grupo.className = 'campo';
+
+    const etiqueta = document.createElement('label');
+    etiqueta.htmlFor = `sel-${clave}`;
+    etiqueta.innerHTML = campo.obligatorio
+      ? `${campo.titulo} <span class="obligatorio">·&nbsp;obligatorio</span>`
+      : campo.titulo;
+    grupo.appendChild(etiqueta);
+
+    const select = document.createElement('select');
+    select.id = `sel-${clave}`;
+
+    const vacia = document.createElement('option');
+    vacia.value = '';
+    vacia.textContent = 'Elegir…';
+    select.appendChild(vacia);
+
+    for (const opcion of campo.opciones) {
+      const o = document.createElement('option');
+      o.value = opcion;
+      o.textContent = opcion;
+      select.appendChild(o);
+    }
+    select.value = sesion.respuestas[clave]?.valor ?? '';
+
+    select.addEventListener('change', async () => {
+      if (select.value === '') delete sesion.respuestas[clave];
+      else sesion.respuestas[clave] = { valor: select.value, origen: 'tecleado' };
+      await guardarSesion(sesion);
+      refrescarSiguiente();
+    });
+
+    grupo.appendChild(select);
+    control.appendChild(grupo);
   }
 }
 
 function pintarDato(control, paso) {
   const entrada = document.createElement('input');
-  entrada.type = 'number';
-  entrada.inputMode = 'decimal';
-  entrada.min = '0';
+  if (paso.texto) {
+    entrada.type = 'text';
+    entrada.autocomplete = 'off';
+  } else {
+    entrada.type = 'number';
+    entrada.inputMode = 'decimal';
+    entrada.min = '0';
+  }
   entrada.value = sesion.respuestas[paso.id]?.valor ?? '';
+
+  // El municipio lo propone el GPS, pero lo confirma el técnico: una
+  // coordenada no es una dirección, y la zona decide el desplazamiento.
+  if (paso.id === 'municipio' && !entrada.value && sesion.gps) {
+    entrada.placeholder = 'Escribe el municipio y compruébalo';
+  }
+
   entrada.addEventListener('input', async () => {
-    const valor = entrada.value === '' ? '' : Number(entrada.value);
+    const bruto = entrada.value;
+    const valor = bruto === '' ? '' : (paso.texto ? bruto : Number(bruto));
     sesion.respuestas[paso.id] = { valor, origen: 'tecleado' };
     await guardarSesion(sesion);
     refrescarSiguiente();
@@ -142,11 +330,21 @@ function pintarPregunta(control, paso) {
   }
 }
 
+// ── Navegación ──────────────────────────────────────────────────────────
+
+function hayRespuesta(clave) {
+  const r = sesion.respuestas[clave];
+  return r !== undefined && r.valor !== undefined && r.valor !== null && r.valor !== '';
+}
+
 function refrescarSiguiente() {
   const paso = guion.pasos[indice];
-  const respuesta = sesion.respuestas[paso.id];
-  const resuelta = respuesta !== undefined && respuesta.valor !== undefined && respuesta.valor !== '';
-  $('siguiente').disabled = Boolean(paso.obligatorio) && !resuelta;
+
+  const faltaElPaso = Boolean(paso.obligatorio) && !hayRespuesta(paso.id);
+  const faltaAlgunCampo = (paso.campos ?? [])
+    .some(c => c.obligatorio && !hayRespuesta(`${paso.id}.${c.id}`));
+
+  $('siguiente').disabled = faltaElPaso || faltaAlgunCampo;
   $('siguiente').textContent = indice === guion.pasos.length - 1 ? 'Terminar' : 'Siguiente';
 }
 
@@ -158,8 +356,14 @@ async function noPude() {
   const paso = guion.pasos[indice];
   if (paso.obligatorio && !sesion.respuestas[paso.id]) {
     sesion.respuestas[paso.id] = { valor: null, origen: 'no_pudo' };
-    await guardarSesion(sesion);
   }
+  for (const campo of paso.campos ?? []) {
+    const clave = `${paso.id}.${campo.id}`;
+    if (campo.obligatorio && !sesion.respuestas[clave]) {
+      sesion.respuestas[clave] = { valor: null, origen: 'no_pudo' };
+    }
+  }
+  await guardarSesion(sesion);
   avanzar(1);
 }
 
@@ -171,15 +375,33 @@ function avanzar(paso) {
   pintarPaso();
 }
 
+const CIERRE = {
+  presupuesto: {
+    bien: 'Todos los datos quedaron resueltos. Esta visita cierra presupuesto.',
+    mal: ejes => `Falta por resolver: ${ejes.join(' · ')}. Sale informe, no presupuesto.`
+  },
+  parte: {
+    bien: 'Parte de trabajo completo. Se factura por horas, no por alcance.',
+    mal: ejes => `Falta por resolver: ${ejes.join(' · ')}. El parte sale incompleto.`
+  },
+  expediente: {
+    bien: 'Expediente completo. Listo para emitir el certificado.',
+    mal: ejes => `Falta por resolver: ${ejes.join(' · ')}. El expediente no se puede cerrar.`
+  }
+};
+
 async function terminar() {
+  camara.cerrar($('video-camara'));
   const veredicto = evaluar(guion, sesion);
   sesion.terminada = new Date().toISOString();
   await guardarSesion(sesion);
+
+  const textos = CIERRE[guion.salida] ?? CIERRE.presupuesto;
   $('pantalla-paso').hidden = true;
   $('pantalla-final').hidden = false;
   $('veredicto').innerHTML = veredicto.puedePresupuestar
-    ? '<span class="completo">Todos los datos quedaron resueltos. Esta visita cierra presupuesto.</span>'
-    : `<span class="hueco">Falta por resolver: ${veredicto.ejesAbiertos.join(' · ')}. Sale informe, no presupuesto.</span>`;
+    ? `<span class="completo">${textos.bien}</span>`
+    : `<span class="hueco">${textos.mal(veredicto.ejesAbiertos)}</span>`;
 }
 
 function verInforme() {

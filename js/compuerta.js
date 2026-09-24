@@ -13,6 +13,12 @@ function estaResuelta(respuesta) {
   return true;
 }
 
+// Los campos de un paso (los desplegables que acompañan a una foto) se
+// guardan con clave compuesta: «contador.ubicacion».
+export function claveCampo(paso, campo) {
+  return `${paso.id}.${campo.id}`;
+}
+
 export function evaluar(guion, sesion) {
   const respuestas = sesion?.respuestas ?? {};
 
@@ -24,6 +30,18 @@ export function evaluar(guion, sesion) {
       for (const eje of paso.cierra ?? []) ejesResueltos.add(eje);
     } else if (paso.obligatorio) {
       pasosPendientes.push(paso.id);
+    }
+
+    // Un desplegable captura lo que el técnico ve y la foto no prueba: dónde
+    // está el contador, si queda hueco en el cuadro. Cierra eje por su cuenta,
+    // y puede hacerlo aunque la foto no se haya podido tomar.
+    for (const campo of paso.campos ?? []) {
+      const clave = claveCampo(paso, campo);
+      if (estaResuelta(respuestas[clave])) {
+        for (const eje of campo.cierra ?? []) ejesResueltos.add(eje);
+      } else if (campo.obligatorio) {
+        pasosPendientes.push(clave);
+      }
     }
   }
 

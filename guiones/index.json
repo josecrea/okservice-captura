@@ -1,0 +1,9 @@
+{
+  "actividades": [
+    { "id": "irve",       "titulo": "Punto de recarga",      "icono": "🔌", "partida": "13.1" },
+    { "id": "cie",        "titulo": "Boletín CIE",           "icono": "📄", "partida": "9.1"  },
+    { "id": "aire",       "titulo": "Aire acondicionado",    "icono": "❄️", "partida": "8.1"  },
+    { "id": "averia",     "titulo": "Avería eléctrica",      "icono": "⚡", "partida": "1.1"  },
+    { "id": "suministro", "titulo": "Nuevo suministro",      "icono": "🏗️", "partida": "2.1"  }
+  ]
+}

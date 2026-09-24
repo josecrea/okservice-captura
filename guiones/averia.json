@@ -1,0 +1,158 @@
+{
+  "id": "averia",
+  "titulo": "Avería eléctrica",
+  "partida": "1.1",
+  "salida": "parte",
+  "nota": "La avería se cobra por hora, no por alcance. La salida es un parte de trabajo, no un presupuesto cerrado.",
+  "ejesObligatorios": [
+    "ZONA",
+    "URGENC"
+  ],
+  "pasos": [
+    {
+      "id": "municipio",
+      "tipo": "dato",
+      "texto": true,
+      "titulo": "Municipio",
+      "ayuda": "Fija la zona de desplazamiento. Si el móvil da el GPS, se rellena solo; compruébalo.",
+      "cierra": [
+        "ZONA"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "urgencia",
+      "tipo": "pregunta",
+      "titulo": "Para cuándo",
+      "opciones": [
+        "En horario normal",
+        "Urgente en 24 h",
+        "Noche o festivo"
+      ],
+      "ayuda": "El recargo de urgencia se aplica sobre la hora.",
+      "cierra": [
+        "URGENC"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "ambito",
+      "tipo": "pregunta",
+      "titulo": "Dónde está la avería",
+      "opciones": [
+        "Vivienda",
+        "Local o industria",
+        "Instalación de enlace"
+      ],
+      "ayuda": "El precio de la hora va por ámbito: 79 · 96,30 · 117,70 €.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "sintoma",
+      "tipo": "foto",
+      "titulo": "El síntoma: lo que el cliente ve",
+      "ayuda": "Diferencial saltado, aparato que no arranca, quemadura, luz que parpadea.",
+      "cierra": [],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "alcance",
+          "titulo": "Alcance del fallo",
+          "opciones": [
+            "Un solo punto o aparato",
+            "Un circuito entero",
+            "Toda la instalación",
+            "Intermitente"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "cuadro",
+      "tipo": "foto",
+      "titulo": "Cuadro eléctrico, con la puerta abierta",
+      "ayuda": "Qué protección ha actuado y en qué estado está el resto.",
+      "cierra": [],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "protegido",
+          "titulo": "Qué protección ha actuado",
+          "opciones": [
+            "Diferencial",
+            "Magnetotérmico",
+            "IGA",
+            "Ninguna: el fallo es otro"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "causa",
+      "tipo": "foto",
+      "titulo": "La causa, una vez localizada",
+      "ayuda": "El punto exacto del fallo. Es la foto que justifica la reparación ante el cliente.",
+      "cierra": [],
+      "obligatorio": false,
+      "campos": [
+        {
+          "id": "origen",
+          "titulo": "Origen del fallo",
+          "opciones": [
+            "Derivación a tierra",
+            "Cortocircuito",
+            "Sobrecarga",
+            "Conexión floja o quemada",
+            "Aparato del cliente",
+            "Acometida o compañía"
+          ],
+          "cierra": [],
+          "obligatorio": false
+        }
+      ]
+    },
+    {
+      "id": "reparado",
+      "tipo": "foto",
+      "titulo": "Después de reparar",
+      "ayuda": "El antes y el después es lo que evita discusiones.",
+      "cierra": [],
+      "obligatorio": false
+    },
+    {
+      "id": "horas",
+      "tipo": "dato",
+      "titulo": "Horas empleadas",
+      "unidad": "h",
+      "ayuda": "La primera hora va en la partida; de la segunda en adelante, hora adicional.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "material",
+      "tipo": "dato",
+      "texto": true,
+      "titulo": "Material empleado",
+      "ayuda": "Lo que se ha puesto, para añadirlo al parte. Si no hubo, escribe «ninguno».",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "resuelta",
+      "tipo": "pregunta",
+      "titulo": "¿Queda resuelta?",
+      "opciones": [
+        "Sí, reparada",
+        "Reparación provisional: requiere vuelta",
+        "No: requiere presupuesto aparte"
+      ],
+      "cierra": [],
+      "obligatorio": true
+    }
+  ]
+}

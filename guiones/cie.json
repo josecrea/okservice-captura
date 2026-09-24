@@ -1,0 +1,153 @@
+{
+  "id": "cie",
+  "titulo": "Boletín CIE",
+  "partida": "9.1",
+  "salida": "expediente",
+  "nota": "El boletín lleva el desplazamiento dentro, así que no se pregunta el municipio.",
+  "ejesObligatorios": [
+    "PAPELEO"
+  ],
+  "pasos": [
+    {
+      "id": "cuadro",
+      "tipo": "foto",
+      "titulo": "Cuadro general, con la puerta abierta",
+      "ayuda": "Estado de las protecciones y reparto de circuitos.",
+      "cierra": [],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "circuitos",
+          "titulo": "Cuántos circuitos",
+          "opciones": [
+            "Hasta 6",
+            "Hasta 10",
+            "Hasta 14",
+            "Hasta 18",
+            "Más de 18"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        },
+        {
+          "id": "rotulado",
+          "titulo": "¿Está rotulado?",
+          "opciones": [
+            "Sí, completo",
+            "Parcial",
+            "No"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "iga",
+      "tipo": "foto",
+      "titulo": "Diferencial e IGA en primer plano",
+      "ayuda": "Sensibilidad, curva y amperaje, legibles.",
+      "cierra": [
+        "POTENC"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "diferencial",
+          "titulo": "Tipo de diferencial",
+          "opciones": [
+            "Tipo AC",
+            "Tipo A",
+            "Superinmunizado",
+            "No identificable"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "tierra",
+      "tipo": "foto",
+      "titulo": "Toma de tierra: pica, arqueta o puente",
+      "ayuda": "Es el punto que más inspecciones suspende. Que se vea la conexión.",
+      "cierra": [],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "estado",
+          "titulo": "Toma de tierra",
+          "opciones": [
+            "Correcta y medida",
+            "Existe pero sin arqueta registrable",
+            "No existe",
+            "No localizable"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "medicion",
+      "tipo": "foto",
+      "titulo": "Medición, con el valor en la pantalla del equipo",
+      "ayuda": "Continuidad y aislamiento. La foto es la prueba de que se midió.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "estancias",
+      "tipo": "foto",
+      "titulo": "Cada estancia con su alumbrado encendido",
+      "ayuda": "Acredita los circuitos declarados. Una foto por estancia.",
+      "cierra": [],
+      "obligatorio": true,
+      "repetible": true
+    },
+    {
+      "id": "anomalias",
+      "tipo": "foto",
+      "titulo": "Anomalías, una foto por defecto",
+      "ayuda": "Fundamentan la no conformidad y el presupuesto de subsanación.",
+      "cierra": [],
+      "obligatorio": false,
+      "repetible": true
+    },
+    {
+      "id": "cups",
+      "tipo": "foto",
+      "titulo": "Contador y número de suministro (CUPS)",
+      "ayuda": "Identifica el expediente.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "tipo",
+      "tipo": "pregunta",
+      "titulo": "Qué certificado se emite",
+      "opciones": [
+        "Boletín CIE de vivienda",
+        "Boletín CIE de local",
+        "Boletín CIE con memoria técnica",
+        "Solo revisión, sin certificado"
+      ],
+      "cierra": [
+        "PAPELEO"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "resultado",
+      "tipo": "pregunta",
+      "titulo": "Resultado de la revisión",
+      "opciones": [
+        "Conforme",
+        "Conforme con observaciones",
+        "No conforme: requiere subsanación"
+      ],
+      "cierra": [],
+      "obligatorio": true
+    }
+  ]
+}

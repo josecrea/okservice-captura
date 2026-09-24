@@ -1,0 +1,255 @@
+{
+  "id": "aire",
+  "titulo": "Aire acondicionado",
+  "partida": "8.1",
+  "salida": "presupuesto",
+  "ejesObligatorios": [
+    "ZONA",
+    "METROS",
+    "ALTURA",
+    "POTENC",
+    "EQUIPO",
+    "OBRA"
+  ],
+  "pasos": [
+    {
+      "id": "municipio",
+      "tipo": "dato",
+      "texto": true,
+      "titulo": "Municipio",
+      "ayuda": "Fija la zona de desplazamiento. Si el móvil da el GPS, se rellena solo; compruébalo.",
+      "cierra": [
+        "ZONA"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "acceso",
+      "tipo": "foto",
+      "titulo": "Acceso al inmueble y a la estancia",
+      "ayuda": "Si entra el equipo y si hará falta escalera o plataforma.",
+      "cierra": [
+        "ALTURA"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "split",
+      "tipo": "foto",
+      "titulo": "Pared donde va la unidad interior",
+      "ayuda": "Tipo de pared, altura de montaje y sitio libre alrededor.",
+      "cierra": [
+        "OBRA"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "pared",
+          "titulo": "Tipo de pared",
+          "opciones": [
+            "Ladrillo",
+            "Hormigón",
+            "Pladur o tabique ligero"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        },
+        {
+          "id": "altura",
+          "titulo": "Altura de montaje",
+          "opciones": [
+            "Hasta 2,5 m",
+            "De 2,5 a 3,5 m",
+            "Más de 3,5 m"
+          ],
+          "cierra": [
+            "ALTURA"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "estancia",
+      "tipo": "foto",
+      "titulo": "La estancia completa",
+      "ayuda": "Metros cuadrados y orientación aproximada: de ahí salen las frigorías.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "exterior",
+      "tipo": "foto",
+      "titulo": "Zona de la unidad exterior",
+      "ayuda": "Suelo, pared o cubierta. Si es fachada, qué soporte hace falta.",
+      "cierra": [
+        "OBRA",
+        "ALTURA"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "sitio",
+          "titulo": "Dónde va la unidad exterior",
+          "opciones": [
+            "Suelo o patio",
+            "Pared de fachada",
+            "Cubierta o azotea",
+            "Balcón o terraza"
+          ],
+          "cierra": [
+            "OBRA"
+          ],
+          "obligatorio": true
+        },
+        {
+          "id": "acceso",
+          "titulo": "Acceso para montarla",
+          "opciones": [
+            "Directo, a pie",
+            "Escalera",
+            "Andamio o plataforma",
+            "Requiere grúa"
+          ],
+          "cierra": [
+            "ALTURA"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "recorrido",
+      "tipo": "foto",
+      "titulo": "Recorrido previsto de la línea frigorífica",
+      "ayuda": "Vista, por canaleta o empotrada. Y los pasos de muro.",
+      "cierra": [
+        "CANALIZ"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "canalizacion",
+          "titulo": "Cómo va la línea frigorífica",
+          "opciones": [
+            "Vista, sin canaleta",
+            "Por canaleta interior",
+            "Por canaleta exterior",
+            "Empotrada"
+          ],
+          "cierra": [
+            "CANALIZ"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "cuadro",
+      "tipo": "foto",
+      "titulo": "Cuadro eléctrico",
+      "ayuda": "Si hay hueco y potencia para el circuito del clima.",
+      "cierra": [
+        "POTENC"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "hueco",
+          "titulo": "¿Hay hueco para el circuito del clima?",
+          "opciones": [
+            "Sí",
+            "Justo",
+            "No queda hueco"
+          ],
+          "cierra": [
+            "OBRA"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "toma",
+      "tipo": "foto",
+      "titulo": "Toma de corriente más próxima",
+      "ayuda": "Si hay línea aprovechable o hay que tirar una nueva.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "desague",
+      "tipo": "foto",
+      "titulo": "Salida del desagüe de condensados",
+      "ayuda": "Por gravedad, o hace falta bomba.",
+      "cierra": [
+        "OBRA"
+      ],
+      "obligatorio": false,
+      "campos": [
+        {
+          "id": "salida",
+          "titulo": "Evacuación de condensados",
+          "opciones": [
+            "Por gravedad",
+            "Requiere bomba",
+            "Sin salida cercana"
+          ],
+          "cierra": [],
+          "obligatorio": false
+        }
+      ]
+    },
+    {
+      "id": "metros",
+      "tipo": "dato",
+      "titulo": "Distancia de la unidad interior a la exterior",
+      "unidad": "m",
+      "ayuda": "Tecleada. El split incluye 3 m de gas; del cuarto en adelante se cobra a 32 €/m.",
+      "cierra": [
+        "METROS"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "splits",
+      "tipo": "dato",
+      "titulo": "Cuántos splits",
+      "unidad": "ud",
+      "ayuda": "Uno por estancia a climatizar.",
+      "cierra": [
+        "CANTID"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "potencia",
+      "tipo": "pregunta",
+      "titulo": "Potencia del equipo",
+      "opciones": [
+        "2.500 frigorías (hasta 20 m²)",
+        "3.500 frigorías (20-30 m²)",
+        "4.500 frigorías (30-40 m²)",
+        "Más de 4.500 frigorías",
+        "A determinar por cálculo"
+      ],
+      "cierra": [
+        "POTENC"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "equipo",
+      "tipo": "pregunta",
+      "titulo": "¿Quién pone el aparato?",
+      "opciones": [
+        "Lo aporta el cliente",
+        "Lo ponemos nosotros"
+      ],
+      "cierra": [
+        "EQUIPO"
+      ],
+      "obligatorio": true
+    }
+  ]
+}

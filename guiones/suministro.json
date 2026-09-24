@@ -1,0 +1,224 @@
+{
+  "id": "suministro",
+  "titulo": "Nuevo suministro",
+  "partida": "2.1",
+  "salida": "presupuesto",
+  "nota": "Los derechos de acometida de e-distribución van APARTE: los paga el cliente directamente.",
+  "ejesObligatorios": [
+    "ZONA",
+    "POTENC",
+    "EQUIPO",
+    "OBRA",
+    "PAPELEO"
+  ],
+  "pasos": [
+    {
+      "id": "municipio",
+      "tipo": "dato",
+      "texto": true,
+      "titulo": "Municipio",
+      "ayuda": "Fija la zona de desplazamiento. Si el móvil da el GPS, se rellena solo; compruébalo.",
+      "cierra": [
+        "ZONA"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "parcela",
+      "tipo": "foto",
+      "titulo": "La parcela o el inmueble, desde la calle",
+      "ayuda": "Dónde entra el suministro y por dónde se puede acometer.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "apoyo",
+      "tipo": "foto",
+      "titulo": "Punto de conexión: apoyo, arqueta o CGP más próxima",
+      "ayuda": "De aquí sale la distancia de la acometida, que es lo que más pesa.",
+      "cierra": [],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "punto",
+          "titulo": "Punto de conexión",
+          "opciones": [
+            "Apoyo aéreo",
+            "Arqueta subterránea",
+            "CGP existente",
+            "Sin punto cercano identificado"
+          ],
+          "cierra": [],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "trazado",
+      "tipo": "foto",
+      "titulo": "Trazado previsto, tramo a tramo",
+      "ayuda": "Por dónde pasa: acera, asfalto, tierra o finca privada.",
+      "cierra": [
+        "CANALIZ"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "canalizacion",
+          "titulo": "Cómo discurre",
+          "opciones": [
+            "Enterrada en zanja",
+            "Aérea sobre apoyos",
+            "Grapada en fachada",
+            "Mixta"
+          ],
+          "cierra": [
+            "CANALIZ"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "terreno",
+      "tipo": "foto",
+      "titulo": "Tipo de terreno del trazado",
+      "ayuda": "Acera y asfalto exigen obra civil y reposición; la tierra no.",
+      "cierra": [
+        "OBRA"
+      ],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "tipo",
+          "titulo": "Terreno del trazado",
+          "opciones": [
+            "Tierra o jardín",
+            "Acera (requiere reposición)",
+            "Asfalto (requiere corte y reposición)",
+            "Mixto"
+          ],
+          "cierra": [
+            "OBRA"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "cpm",
+      "tipo": "foto",
+      "titulo": "Dónde irá la CPM o el armario de contador",
+      "ayuda": "Tiene que quedar accesible desde vía pública.",
+      "cierra": [],
+      "obligatorio": true,
+      "campos": [
+        {
+          "id": "acceso",
+          "titulo": "Accesibilidad desde vía pública",
+          "opciones": [
+            "Directa",
+            "Requiere hornacina",
+            "Requiere murete",
+            "Problemática"
+          ],
+          "cierra": [
+            "OBRA"
+          ],
+          "obligatorio": true
+        }
+      ]
+    },
+    {
+      "id": "cuadro",
+      "tipo": "foto",
+      "titulo": "Dónde irá el cuadro general",
+      "ayuda": "De aquí sale la longitud de la derivación individual.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "longitud",
+      "tipo": "dato",
+      "titulo": "Longitud de la acometida",
+      "unidad": "m",
+      "ayuda": "Por encima de 50 m entra proyecto con visado COITI (600 €). Mídelo, no lo estimes.",
+      "cierra": [
+        "METROS"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "potencia",
+      "tipo": "pregunta",
+      "titulo": "Potencia a contratar",
+      "opciones": [
+        "Hasta 5,75 kW",
+        "Hasta 9,2 kW",
+        "Hasta 14,49 kW",
+        "Más de 15 kW (entra proyecto)",
+        "Trifásico"
+      ],
+      "ayuda": "Por encima de 15 kW entra proyecto con visado.",
+      "cierra": [
+        "POTENC"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "tipo",
+      "tipo": "pregunta",
+      "titulo": "Tipo de acometida",
+      "opciones": [
+        "Aérea",
+        "Subterránea",
+        "Mixta"
+      ],
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "uso",
+      "tipo": "pregunta",
+      "titulo": "Uso del suministro",
+      "opciones": [
+        "Vivienda",
+        "Local comercial",
+        "Industrial",
+        "Pública concurrencia",
+        "Obra (provisional)"
+      ],
+      "ayuda": "Industrial y pública concurrencia llevan proyecto siempre.",
+      "cierra": [],
+      "obligatorio": true
+    },
+    {
+      "id": "equipo",
+      "tipo": "pregunta",
+      "titulo": "Armario, CPM y contador",
+      "opciones": [
+        "Los ponemos nosotros",
+        "Los aporta el cliente"
+      ],
+      "cierra": [
+        "EQUIPO"
+      ],
+      "obligatorio": true
+    },
+    {
+      "id": "papeleo",
+      "tipo": "pregunta",
+      "titulo": "Tramitación",
+      "opciones": [
+        "Boletín CIE",
+        "Boletín CIE y memoria técnica",
+        "Proyecto con visado COITI",
+        "Solo la instalación, sin trámites"
+      ],
+      "cierra": [
+        "PAPELEO"
+      ],
+      "obligatorio": true
+    }
+  ]
+}
