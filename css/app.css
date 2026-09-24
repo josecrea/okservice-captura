@@ -1,0 +1,95 @@
+:root {
+  --fondo: oklch(98% 0 0);
+  --texto: oklch(20% 0 0);
+  --tenue: oklch(50% 0 0);
+  --borde: oklch(88% 0 0);
+  --acento: oklch(55% 0.16 250);
+  --alarma: oklch(55% 0.19 30);
+  --bien: oklch(52% 0.15 150);
+  --radio: 12px;
+  --hueco: 1rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: var(--hueco);
+  font: 16px/1.5 system-ui, -apple-system, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  -webkit-text-size-adjust: 100%;
+}
+
+header { margin-bottom: 1.5rem; }
+h1 { font-size: 1.25rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.4rem; margin: 0 0 .5rem; line-height: 1.25; }
+#progreso { margin: 0; color: var(--tenue); font-size: .875rem; }
+#paso-ayuda { color: var(--tenue); margin: 0 0 1.25rem; }
+
+label { display: block; margin-bottom: .35rem; font-weight: 600; }
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: .85rem;
+  font-size: 1.1rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: white;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: .85rem;
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+  background: white;
+}
+
+button {
+  padding: .95rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radio);
+  background: var(--acento);
+  color: white;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+button:disabled { opacity: .4; cursor: not-allowed; }
+#atras, #saltar { background: transparent; color: var(--tenue); border: 1px solid var(--borde); }
+#empezar { width: 100%; margin-top: 1rem; }
+
+.botonera {
+  display: flex;
+  gap: .5rem;
+  margin-top: 1.5rem;
+  position: sticky;
+  bottom: var(--hueco);
+}
+.botonera #siguiente { flex: 1; }
+
+.opcion {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: .5rem;
+  background: white;
+  color: var(--texto);
+  border: 1px solid var(--borde);
+}
+.opcion[aria-pressed="true"] { border-color: var(--acento); border-width: 2px; }
+
+.vistaprevia {
+  width: 100%;
+  border-radius: var(--radio);
+  margin-top: .75rem;
+  display: block;
+}
+
+.obligatorio { color: var(--alarma); font-weight: 600; }
+.hueco { color: var(--alarma); }
+.completo { color: var(--bien); }

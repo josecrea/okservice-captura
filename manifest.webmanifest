@@ -1,0 +1,13 @@
+{
+  "name": "Captura · #Okservice.es",
+  "short_name": "Captura",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fafafa",
+  "theme_color": "#111111",
+  "icons": [
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

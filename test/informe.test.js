@@ -64,3 +64,27 @@ test('el HTML escapa el nombre del cliente', () => {
   assert.ok(html.includes('Pepe &amp; &lt;Hijos&gt;'));
   assert.ok(!html.includes('<Hijos>'));
 });
+
+test('"no se pudo" se distingue de "se quedó sin responder"', () => {
+  const sesion = {
+    ...sesionCompleta,
+    respuestas: {
+      fachada: sesionCompleta.respuestas.fachada,
+      metros: { valor: null, origen: 'no_pudo' }
+    }
+  };
+  const inf = construirInforme(guion, sesion);
+  const fila = inf.filas.find(f => f.id === 'metros');
+  assert.equal(fila.origen, 'no_pudo');
+  assert.equal(fila.texto, 'No se pudo resolver');
+  assert.deepEqual(inf.huecos, ['METROS'], 'sigue siendo un hueco: el eje no está cerrado');
+  assert.equal(inf.puedePresupuestar, false);
+});
+
+test('el informe deja ver en el HTML que no se pudo', () => {
+  const sesion = {
+    ...sesionCompleta,
+    respuestas: { fachada: sesionCompleta.respuestas.fachada, metros: { valor: null, origen: 'no_pudo' } }
+  };
+  assert.ok(construirInforme(guion, sesion).html.includes('no se pudo en la visita'));
+});

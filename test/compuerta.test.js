@@ -56,3 +56,15 @@ test('CONTROL NEGATIVO · un eje opcional sin resolver no bloquea nada', () => {
   const sesion = { respuestas: { foto1: { valor: 'f.jpg', origen: 'foto' }, m: { valor: 12, origen: 'tecleado' } } };
   assert.equal(evaluar(g, sesion).puedePresupuestar, true);
 });
+
+test('CONTROL NEGATIVO · "no he podido" NO cierra el eje', () => {
+  const sesion = {
+    respuestas: {
+      foto1: { valor: 'f.jpg', origen: 'foto' },
+      m: { valor: null, origen: 'no_pudo' }
+    }
+  };
+  const r = evaluar(guion, sesion);
+  assert.equal(r.puedePresupuestar, false, 'declarar que no se pudo medir no puede valer como medida');
+  assert.deepEqual(r.ejesAbiertos, ['METROS']);
+});

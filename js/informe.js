@@ -4,6 +4,7 @@ const ETIQUETA_ORIGEN = {
   foto: '📷 leído de foto',
   tecleado: '✍️ tecleado en obra',
   gps: '📍 del móvil',
+  no_pudo: '⚠️ no se pudo en la visita',
   sin_resolver: '❓ sin resolver'
 };
 
@@ -16,6 +17,7 @@ function escapar(texto) {
 }
 
 function textoDe(paso, respuesta) {
+  if (respuesta?.origen === 'no_pudo') return 'No se pudo resolver';
   if (!respuesta || respuesta.valor === undefined || respuesta.valor === null) return '—';
   if (paso.tipo === 'foto') return 'Fotografiado';
   if (paso.unidad) return `${respuesta.valor} ${paso.unidad}`;
@@ -29,11 +31,16 @@ export function construirInforme(guion, sesion) {
   const filas = guion.pasos.map(paso => {
     const respuesta = respuestas[paso.id];
     const resuelta = respuesta !== undefined && respuesta.valor !== undefined && respuesta.valor !== null && respuesta.valor !== '';
+    // «No se pudo» y «se quedó sin responder» son cosas distintas, y el
+    // informe las separa: una es una decisión del técnico, la otra un olvido.
+    const origen = resuelta
+      ? (respuesta.origen ?? 'tecleado')
+      : (respuesta?.origen === 'no_pudo' ? 'no_pudo' : 'sin_resolver');
     return {
       id: paso.id,
       titulo: paso.titulo,
       texto: textoDe(paso, respuesta),
-      origen: resuelta ? (respuesta.origen ?? 'tecleado') : 'sin_resolver',
+      origen,
       cierra: paso.cierra ?? []
     };
   });

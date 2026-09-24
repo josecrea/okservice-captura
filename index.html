@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icono-512.png">
+  <link rel="apple-touch-icon" href="icono-512.png">
+  <link rel="stylesheet" href="css/app.css">
+  <title>Captura · #Okservice.es</title>
+</head>
+<body>
+  <header>
+    <h1 id="cabecera">Captura guiada</h1>
+    <p id="progreso"></p>
+  </header>
+
+  <main>
+    <section id="pantalla-inicio">
+      <label for="cliente">Cliente o dirección</label>
+      <input id="cliente" type="text" autocomplete="off" placeholder="Comunidad Los Cristianos">
+      <button id="empezar" type="button">Empezar captura de IRVE</button>
+    </section>
+
+    <section id="pantalla-paso" hidden>
+      <h2 id="paso-titulo"></h2>
+      <p id="paso-ayuda"></p>
+      <div id="paso-control"></div>
+      <div class="botonera">
+        <button id="atras" type="button">Atrás</button>
+        <button id="saltar" type="button">Saltar</button>
+        <button id="siguiente" type="button">Siguiente</button>
+      </div>
+    </section>
+
+    <section id="pantalla-final" hidden>
+      <h2>Visita terminada</h2>
+      <p id="veredicto"></p>
+      <button id="ver-informe" type="button">Ver el informe</button>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
