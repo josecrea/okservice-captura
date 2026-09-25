@@ -201,9 +201,6 @@ button:disabled { opacity: .4; cursor: not-allowed; }
   border-radius: var(--radio);
 }
 
-#otra { width: 100%; margin-top: .6rem; }
-#ver-informe { width: 100%; }
-
 /* ── Desplegables que acompañan a un paso ────────────────────────────── */
 
 .campo { margin-top: 1.1rem; }
@@ -226,3 +223,135 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 }
 
 .campo select:invalid, .campo select[data-vacio="si"] { color: var(--tenue); }
+
+/* ── Mis visitas ─────────────────────────────────────────────────────── */
+
+.ir-visitas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  margin-top: 1.75rem;
+  background: transparent;
+  color: var(--tenue);
+  border: 1px dashed var(--borde);
+}
+
+.pastilla {
+  background: var(--acento);
+  color: white;
+  border-radius: 99px;
+  padding: .1rem .55rem;
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+}
+.pastilla[hidden] { display: none; }
+
+.resumen-almacen {
+  margin: -.25rem 0 1.25rem;
+  color: var(--tenue);
+  font-size: .85rem;
+}
+
+.vacio {
+  color: var(--tenue);
+  background: white;
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.visitas { list-style: none; margin: 0; padding: 0; }
+
+.visita {
+  background: white;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: .9rem 1rem 1rem;
+  margin-bottom: .75rem;
+}
+/* La franja de la izquierda es lo único que distingue de un golpe de vista
+   una visita cerrada de una que se dejó a medias. */
+.visita.a-medias { border-left: 4px solid var(--alarma); }
+
+.visita-cabecera {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  align-items: start;
+  gap: .7rem;
+}
+.visita-cabecera .icono { font-size: 1.4rem; line-height: 1.2; }
+.visita-titulo { display: flex; flex-direction: column; min-width: 0; }
+.visita-titulo strong { font-size: 1rem; overflow-wrap: anywhere; }
+.visita-actividad { font-size: .82rem; color: var(--tenue); }
+.visita-fecha { font-size: .78rem; color: var(--tenue); white-space: nowrap; }
+
+.visita-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .75rem 0 .9rem;
+}
+.dato {
+  font-size: .75rem;
+  color: var(--tenue);
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 99px;
+  padding: .15rem .6rem;
+  font-variant-numeric: tabular-nums;
+}
+.dato.pendiente { color: var(--alarma); border-color: currentColor; }
+.dato.a-medias { color: var(--alarma); border-color: currentColor; font-weight: 600; }
+
+.visita-acciones { display: flex; gap: .45rem; }
+.visita-acciones button { flex: 1; font-size: .9rem; padding: .7rem .5rem; min-height: 44px; }
+.visita-acciones .borrar { color: var(--alarma); border-color: var(--borde); }
+
+/* ── Las salidas del informe ─────────────────────────────────────────── */
+
+.salidas { margin: 1.5rem 0 .5rem; }
+#compartir { width: 100%; font-size: 1.05rem; }
+
+.salidas-menores { display: flex; gap: .45rem; margin-top: .5rem; }
+.salidas-menores button { flex: 1; font-size: .9rem; padding: .7rem .4rem; }
+
+.aviso-informe {
+  color: var(--alarma);
+  font-size: .875rem;
+  margin: .75rem 0 0;
+}
+
+#otra { width: 100%; margin-top: 1.25rem; }
+
+/* ── El informe a pantalla completa ──────────────────────────────────── */
+
+.visor-informe {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--fondo);
+  display: flex;
+  flex-direction: column;
+}
+.visor-informe[hidden] { display: none; }
+
+.visor-barra {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem var(--hueco);
+  padding-top: max(.6rem, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--borde);
+  background: white;
+}
+.visor-barra button { padding: .6rem .9rem; min-height: 44px; }
+.visor-titulo { font-size: .85rem; color: var(--tenue); }
+
+#marco-informe { flex: 1; width: 100%; border: 0; background: white; }
+
+/* Con el informe delante, el fondo no se desplaza por debajo. */
+body.con-visor { overflow: hidden; }

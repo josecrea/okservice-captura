@@ -24,6 +24,19 @@
 
       <h2 class="titulo-menu">¿Qué vas a hacer?</h2>
       <ul id="menu-actividades" class="menu"></ul>
+
+      <button id="ver-visitas" type="button" class="ir-visitas">
+        📁 Mis visitas<span id="cuenta-visitas" class="pastilla" hidden></span>
+      </button>
+    </section>
+
+    <section id="pantalla-visitas" hidden>
+      <p id="resumen-almacen" class="resumen-almacen"></p>
+      <ul id="lista-visitas" class="visitas"></ul>
+      <p id="sin-visitas" class="vacio" hidden>
+        Todavía no hay ninguna visita guardada. Las que hagas se quedan en este
+        móvil aunque no haya cobertura.
+      </p>
     </section>
 
     <section id="pantalla-paso" hidden>
@@ -38,12 +51,32 @@
     </section>
 
     <section id="pantalla-final" hidden>
-      <h2>Visita terminada</h2>
+      <h2 id="titulo-final">Visita terminada</h2>
       <p id="veredicto"></p>
-      <button id="ver-informe" type="button">Ver el informe</button>
+
+      <div class="salidas">
+        <button id="compartir" type="button" disabled>Preparando el informe…</button>
+        <div class="salidas-menores">
+          <button id="descargar" type="button" class="secundario" disabled>⬇️ Guardar</button>
+          <button id="pdf" type="button" class="secundario" disabled>🖨️ PDF</button>
+          <button id="ver-informe" type="button" class="secundario" disabled>👁️ Ver</button>
+        </div>
+      </div>
+      <p id="aviso-informe" class="aviso-informe" hidden></p>
+
       <button id="otra" type="button" class="secundario">Volver al menú</button>
     </section>
   </main>
+
+  <!-- El informe se ve aquí dentro, no en una pestaña nueva: Safari bloquea
+       la pestaña sin avisar y el técnico se queda sin saber qué ha pasado. -->
+  <div id="panel-informe" class="visor-informe" hidden>
+    <div class="visor-barra">
+      <button id="cerrar-visor" type="button" class="secundario">✕ Cerrar</button>
+      <span class="visor-titulo">Informe de la visita</span>
+    </div>
+    <iframe id="marco-informe" title="Informe de la visita"></iframe>
+  </div>
 
   <script type="module" src="js/app.js"></script>
 </body>

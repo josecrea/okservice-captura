@@ -5,10 +5,16 @@ import { guardarSesion, listarSesiones, borrarSesion } from './almacen.js';
 import { construirInforme } from './informe.js';
 import { Camara } from './camara.js';
 import { buscarPendiente, contarDatos, tieneTrabajo, pasoAlQueVolver } from './reanudar.js';
+import { leerFotos } from './fotos.js';
+import { compartir, descargar, imprimir } from './salidas.js';
+import { pintarVisitas } from './pantalla-visitas.js';
+import { resumirVisita, formatearPeso } from './visitas.js';
 
 let guion = null;
 let sesion = null;
 let indice = 0;
+let catalogo = [];
+let informeActual = null;
 const camara = new Camara();
 
 const $ = id => document.getElementById(id);
@@ -17,14 +23,23 @@ const $ = id => document.getElementById(id);
 
 async function arrancar() {
   const indiceActividades = await (await fetch('guiones/index.json')).json();
-  pintarMenu(indiceActividades.actividades);
+  catalogo = indiceActividades.actividades;
+  pintarMenu(catalogo);
 
   $('siguiente').addEventListener('click', () => avanzar(1));
   $('atras').addEventListener('click', () => avanzar(-1));
   $('saltar').addEventListener('click', noPude);
-  $('ver-informe').addEventListener('click', verInforme);
   $('ir-menu').addEventListener('click', volverAlMenu);
   $('otra').addEventListener('click', volverAlMenu);
+  $('ver-visitas').addEventListener('click', abrirVisitas);
+  $('cerrar-visor').addEventListener('click', cerrarVisor);
+
+  $('compartir').addEventListener('click', enviarInforme);
+  $('descargar').addEventListener('click', guardarInforme);
+  $('pdf').addEventListener('click', imprimirInforme);
+  $('ver-informe').addEventListener('click', verInforme);
+
+  contarVisitas();
 }
 
 function pintarMenu(actividades) {
@@ -44,14 +59,21 @@ function pintarMenu(actividades) {
   }
 }
 
-async function empezar(idActividad) {
-  guion = await (await fetch(`guiones/${idActividad}.json`)).json();
+async function cargarGuion(idActividad) {
+  const cargado = await (await fetch(`guiones/${idActividad}.json`)).json();
 
-  const fallos = validarGuion(guion);
+  const fallos = validarGuion(cargado);
   if (fallos.length) {
     alert(`El guion de ${idActividad} tiene errores:\n\n${fallos.join('\n')}`);
-    return;
+    return null;
   }
+  return cargado;
+}
+
+async function empezar(idActividad) {
+  const cargado = await cargarGuion(idActividad);
+  if (!cargado) return;
+  guion = cargado;
 
   const reanudada = await ofrecerContinuar(guion);
   if (reanudada) {
@@ -69,12 +91,21 @@ async function empezar(idActividad) {
     indice = 0;
   }
 
+  entrarEnLaVisita();
+  if (!sesion.gps) pedirUbicacion();
+}
+
+function entrarEnLaVisita() {
   $('cabecera').textContent = guion.titulo;
   $('ir-menu').hidden = false;
-  $('pantalla-inicio').hidden = true;
-  $('pantalla-paso').hidden = false;
+  mostrarPantalla('pantalla-paso');
   pintarPaso();
-  if (!sesion.gps) pedirUbicacion();
+}
+
+function mostrarPantalla(cual) {
+  for (const id of ['pantalla-inicio', 'pantalla-visitas', 'pantalla-paso', 'pantalla-final']) {
+    $(id).hidden = id !== cual;
+  }
 }
 
 // Si quedó una visita a medias de esta misma actividad, se pregunta. Elegir
@@ -104,6 +135,7 @@ async function ofrecerContinuar(guion) {
 // entrar en la actividad se ofrece continuar por este mismo paso.
 async function volverAlMenu() {
   camara.cerrar($('video-camara'));
+  cerrarVisor();
 
   // Una sesión sin un solo dato no es una visita: es un toque en el menú.
   // Guardarla dejaría basura en el móvil y ensuciaría el «continuar».
@@ -114,13 +146,77 @@ async function volverAlMenu() {
   guion = null;
   sesion = null;
   indice = 0;
+  informeActual = null;
 
-  $('pantalla-paso').hidden = true;
-  $('pantalla-final').hidden = true;
-  $('pantalla-inicio').hidden = false;
+  mostrarPantalla('pantalla-inicio');
   $('ir-menu').hidden = true;
   $('cabecera').textContent = 'Captura guiada';
   $('progreso').textContent = '';
+  contarVisitas();
+}
+
+// ── Mis visitas ─────────────────────────────────────────────────────────
+
+async function contarVisitas() {
+  try {
+    const cuantas = (await listarSesiones()).length;
+    const pastilla = $('cuenta-visitas');
+    pastilla.textContent = String(cuantas);
+    pastilla.hidden = cuantas === 0;
+  } catch {
+    $('cuenta-visitas').hidden = true;
+  }
+}
+
+async function abrirVisitas() {
+  let sesiones = [];
+  try {
+    sesiones = await listarSesiones();
+  } catch {
+    alert('No se pudo leer el almacén del móvil.');
+    return;
+  }
+
+  $('cabecera').textContent = 'Mis visitas';
+  $('progreso').textContent = '';
+  $('ir-menu').hidden = false;
+  mostrarPantalla('pantalla-visitas');
+
+  pintarVisitas({
+    lista: $('lista-visitas'),
+    resumen: $('resumen-almacen'),
+    vacio: $('sin-visitas'),
+    sesiones,
+    catalogo,
+    alSeguir: seguirVisita,
+    alVerInforme: abrirInformeDe,
+    alBorrar: borrarVisita
+  });
+}
+
+async function seguirVisita(guardada) {
+  const cargado = await cargarGuion(guardada.guion);
+  if (!cargado) return;
+
+  guion = cargado;
+  sesion = guardada;
+  indice = pasoAlQueVolver(cargado, guardada);
+  $('cliente').value = guardada.cliente ?? '';
+  entrarEnLaVisita();
+}
+
+// Borrar se lleva las fotos por delante y no hay papelera: se pregunta con el
+// número de fotos delante, que es lo que el técnico va a echar de menos.
+async function borrarVisita(guardada, resumen) {
+  const que = resumen.cliente ? `la visita de «${resumen.cliente}»` : 'esta visita';
+  const conFotos = resumen.fotos
+    ? ` y sus ${resumen.fotos} ${resumen.fotos === 1 ? 'foto' : 'fotos'}`
+    : '';
+  if (!confirm(`Vas a borrar ${que}${conFotos}.\n\nNo se puede deshacer.`)) return;
+
+  await borrarSesion(guardada.id);
+  await abrirVisitas();
+  contarVisitas();
 }
 
 function pedirUbicacion() {
@@ -461,23 +557,109 @@ const CIERRE = {
 
 async function terminar() {
   camara.cerrar($('video-camara'));
-  const veredicto = evaluar(guion, sesion);
   sesion.terminada = new Date().toISOString();
   await guardarSesion(sesion);
+  mostrarFinal();
+  contarVisitas();
+}
 
+function mostrarFinal() {
+  const veredicto = evaluar(guion, sesion);
   const textos = CIERRE[guion.salida] ?? CIERRE.presupuesto;
-  $('pantalla-paso').hidden = true;
-  $('pantalla-final').hidden = false;
+
+  $('cabecera').textContent = guion.titulo;
+  $('progreso').textContent = '';
+  $('ir-menu').hidden = false;
+  mostrarPantalla('pantalla-final');
+  // Una visita que se reabre desde el historial puede no estar cerrada, y
+  // llamarla «terminada» haría creer que ya no falta nada por ir a ver.
+  $('titulo-final').textContent = sesion.terminada ? 'Visita terminada' : 'Visita a medias';
   $('veredicto').innerHTML = veredicto.puedePresupuestar
     ? `<span class="completo">${textos.bien}</span>`
     : `<span class="hueco">${textos.mal(veredicto.ejesAbiertos)}</span>`;
+
+  prepararInforme();
+}
+
+// Vuelve a abrir el informe de una visita ya guardada, desde el historial.
+async function abrirInformeDe(guardada) {
+  const cargado = await cargarGuion(guardada.guion);
+  if (!cargado) return;
+  guion = cargado;
+  sesion = guardada;
+  mostrarFinal();
+}
+
+// ── El informe y sus tres salidas ───────────────────────────────────────
+
+const BOTONES_SALIDA = ['compartir', 'descargar', 'pdf', 'ver-informe'];
+
+// Se construye NADA MÁS entrar en la pantalla, no al pulsar. Meter las fotos
+// dentro del documento es asíncrono, y `navigator.share` exige que la pulsación
+// siga viva: si se espera a leer las fotos, Safari ya no considera que el
+// técnico haya pulsado nada y la hoja de compartir no abre.
+async function prepararInforme() {
+  informeActual = null;
+  for (const id of BOTONES_SALIDA) $(id).disabled = true;
+  $('compartir').textContent = 'Preparando el informe…';
+  $('aviso-informe').hidden = true;
+
+  const { fotos, fallidas } = await leerFotos(sesion);
+  const laSesion = sesion;
+  const informe = construirInforme(guion, sesion, fotos);
+
+  // Si el técnico se fue a otra pantalla mientras se leían las fotos, este
+  // informe ya no es el que tiene delante.
+  if (laSesion !== sesion) return;
+
+  informeActual = informe;
+  for (const id of BOTONES_SALIDA) $(id).disabled = false;
+
+  // El peso va en el botón porque se manda desde la obra: con cobertura
+  // floja, saber si son 200 KB o 4 MB decide si se envía ahora o al llegar.
+  const cuantas = informe.fotos.length;
+  const peso = formatearPeso(new Blob([informe.html]).size);
+  $('compartir').textContent = cuantas
+    ? `📤 Enviar el informe (${cuantas} fotos · ${peso})`
+    : `📤 Enviar el informe (${peso})`;
+
+  if (fallidas.length) {
+    $('aviso-informe').textContent =
+      `⚠️ ${fallidas.length} ${fallidas.length === 1 ? 'foto no se pudo leer' : 'fotos no se pudieron leer'} y no van en el informe.`;
+    $('aviso-informe').hidden = false;
+  }
+}
+
+function enviarInforme() {
+  if (!informeActual) return;
+  const resumen = resumirVisita(sesion, catalogo);
+  compartir({
+    nombre: informeActual.nombreFichero,
+    html: informeActual.html,
+    titulo: `${informeActual.titulo} · ${informeActual.cliente || 'okservice'}`,
+    texto: `Informe de la visita${informeActual.cliente ? ` de ${informeActual.cliente}` : ''} · ${resumen.fotos} fotos · #Okservice.es`
+  });
+}
+
+function guardarInforme() {
+  if (informeActual) descargar(informeActual.nombreFichero, informeActual.html);
+}
+
+function imprimirInforme() {
+  if (informeActual) imprimir(informeActual.html);
 }
 
 function verInforme() {
-  const informe = construirInforme(guion, sesion);
-  const ventana = window.open('', '_blank');
-  ventana.document.write(informe.html);
-  ventana.document.close();
+  if (!informeActual) return;
+  $('marco-informe').srcdoc = informeActual.html;
+  $('panel-informe').hidden = false;
+  document.body.classList.add('con-visor');
+}
+
+function cerrarVisor() {
+  $('panel-informe').hidden = true;
+  $('marco-informe').srcdoc = '';
+  document.body.classList.remove('con-visor');
 }
 
 if ('serviceWorker' in navigator) {
