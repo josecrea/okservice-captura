@@ -160,13 +160,13 @@ async function refrescarEstadoOficina() {
     cuantas = sesiones.length;
     pendientes = pendientesDe(sesiones);
   } catch {
-    letrero.hidden = true;
+    ocultar(letrero);
     return;
   }
 
   // Sin una sola visita, «todo subido» es cierto y no dice nada.
   if (cuantas === 0) {
-    letrero.hidden = true;
+    ocultar(letrero);
     return;
   }
 
@@ -175,6 +175,13 @@ async function refrescarEstadoOficina() {
     : '✅ Todo subido a la oficina';
   letrero.className = `estado-oficina ${pendientes.length ? 'aviso' : 'bien'}`;
   letrero.hidden = false;
+}
+
+// Se vacía al ocultarlo: un letrero escondido que conserva el texto de antes
+// vuelve a aparecer diciendo algo que ya no es verdad.
+function ocultar(letrero) {
+  letrero.hidden = true;
+  letrero.textContent = '';
 }
 
 function avisarSinCredencial() {
