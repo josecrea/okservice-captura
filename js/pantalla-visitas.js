@@ -45,6 +45,13 @@ function tarjeta(sesion, catalogo, manejadores) {
     aviso.textContent = 'a medias';
     datos.appendChild(aviso);
   }
+  // Dónde está la visita: solo en el móvil, o también en la oficina.
+  if (r.terminada) {
+    const nube = document.createElement('span');
+    nube.className = `dato ${r.subida ? 'subida' : 'pendiente'}`;
+    nube.textContent = r.subida ? '☁️ en la oficina' : '📱 solo en el móvil';
+    datos.appendChild(nube);
+  }
   item.appendChild(datos);
 
   const acciones = document.createElement('div');
@@ -56,6 +63,12 @@ function tarjeta(sesion, catalogo, manejadores) {
     seguir.textContent = 'Seguir';
     seguir.addEventListener('click', () => manejadores.alSeguir(sesion));
     acciones.appendChild(seguir);
+  } else if (!r.subida && manejadores.alSubir) {
+    const subir = document.createElement('button');
+    subir.type = 'button';
+    subir.textContent = '☁️ Subir';
+    subir.addEventListener('click', () => manejadores.alSubir(sesion, subir));
+    acciones.appendChild(subir);
   }
 
   const informe = document.createElement('button');

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de visitas · #Okservice.es</title>
+  <style>
+    :root {
+      --fondo: oklch(98% 0 0); --texto: oklch(20% 0 0); --tenue: oklch(50% 0 0);
+      --borde: oklch(88% 0 0); --acento: oklch(55% 0.16 250);
+      --alarma: oklch(55% 0.19 30); --bien: oklch(52% 0.15 150);
+      --radio: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 1.5rem;
+      font: 16px/1.5 system-ui, -apple-system, sans-serif;
+      background: var(--fondo); color: var(--texto);
+      max-width: 62rem; margin-inline: auto;
+    }
+    .marca { font-size: .72rem; text-transform: uppercase; letter-spacing: .09em; color: var(--acento); font-weight: 700; margin: 0 0 .3rem; }
+    h1 { font-size: 1.5rem; margin: 0 0 1.25rem; }
+    label { display: block; font-weight: 600; margin-bottom: .35rem; font-size: .9rem; }
+    input { width: 100%; padding: .8rem; font-size: 1rem; border: 1px solid var(--borde); border-radius: var(--radio); margin-bottom: 1rem; background: white; }
+    button { padding: .8rem 1.1rem; font-weight: 600; font-size: .95rem; border: none; border-radius: var(--radio); background: var(--acento); color: white; cursor: pointer; min-height: 44px; }
+    .secundario { background: transparent; color: var(--tenue); border: 1px solid var(--borde); }
+
+    #conexion { background: white; border: 1px solid var(--borde); border-radius: var(--radio); padding: 1.5rem; max-width: 34rem; }
+    #conexion[hidden], #barra[hidden], #panel-informe[hidden], #descargar-informe[hidden], .aviso[hidden] { display: none; }
+    #conectar { width: 100%; }
+
+    .nota { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--borde); font-size: .82rem; color: var(--tenue); line-height: 1.55; }
+    .nota strong { color: var(--texto); }
+
+    #barra { display: flex; gap: .5rem; align-items: center; margin-bottom: 1.25rem; }
+    #barra .hueco { flex: 1; }
+
+    .aviso { padding: .7rem .9rem; border-radius: var(--radio); font-size: .875rem; margin: 0 0 1.25rem; }
+    .aviso.bien { color: var(--bien); background: oklch(97% .03 150); }
+    .aviso.mal { color: var(--alarma); background: oklch(97% .03 30); }
+    .aviso.neutro { color: var(--tenue); background: white; border: 1px solid var(--borde); }
+
+    #lista { list-style: none; margin: 0; padding: 0; }
+    #lista li { margin-bottom: .5rem; }
+    .fila {
+      display: flex; align-items: center; gap: 1rem; width: 100%; text-align: left;
+      background: white; color: var(--texto); border: 1px solid var(--borde); padding: .9rem 1rem;
+    }
+    .fila:hover { border-color: var(--acento); }
+    .fila-titulo { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .fila-meta { font-size: .8rem; color: var(--tenue); }
+    .fila-datos { font-size: .82rem; color: var(--tenue); white-space: nowrap; }
+    .falta { color: var(--alarma); margin-left: .5rem; }
+    .rota { color: var(--alarma); font-size: .85rem; }
+
+    #panel-informe { position: fixed; inset: 0; background: var(--fondo); display: flex; flex-direction: column; z-index: 10; }
+    .barra-informe { display: flex; align-items: center; gap: .75rem; padding: .7rem 1rem; background: white; border-bottom: 1px solid var(--borde); }
+    #titulo-informe { flex: 1; font-weight: 600; }
+    #marco { flex: 1; width: 100%; border: 0; background: white; }
+  </style>
+</head>
+<body>
+  <p class="marca">#Okservice.es</p>
+  <h1>Panel de visitas</h1>
+
+  <section id="conexion">
+    <label for="repo">Repositorio de datos (privado)</label>
+    <input id="repo" type="text" spellcheck="false" placeholder="josecrea/okservice-captura-datos">
+
+    <label for="testigo">Testigo de acceso</label>
+    <input id="testigo" type="password" spellcheck="false" placeholder="github_pat_…">
+
+    <button id="conectar" type="button">Conectar</button>
+
+    <div class="nota">
+      <p><strong>Esta página no guarda nada en ningún servidor.</strong> El
+      testigo se queda en este navegador y las visitas se leen directamente
+      del repositorio privado.</p>
+      <p>Con un testigo de <strong>solo lectura</strong> basta para el panel:
+      úsalo así y no podrá borrar nada.</p>
+    </div>
+  </section>
+
+  <div id="barra" hidden>
+    <button id="refrescar" type="button" class="secundario">↻ Actualizar</button>
+    <span class="hueco"></span>
+    <button id="salir" type="button" class="secundario">Desconectar</button>
+  </div>
+
+  <p id="aviso" class="aviso" hidden></p>
+  <ul id="lista"></ul>
+
+  <div id="panel-informe" hidden>
+    <div class="barra-informe">
+      <button id="cerrar-informe" type="button" class="secundario">✕ Cerrar</button>
+      <span id="titulo-informe"></span>
+      <button id="descargar-informe" type="button" hidden>⬇️ Descargar</button>
+    </div>
+    <iframe id="marco" title="Informe de la visita"></iframe>
+  </div>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

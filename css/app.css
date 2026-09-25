@@ -355,3 +355,69 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 
 /* Con el informe delante, el fondo no se desplaza por debajo. */
 body.con-visor { overflow: hidden; }
+
+/* ── La oficina ──────────────────────────────────────────────────────── */
+
+.pie-inicio { display: flex; gap: .5rem; margin-top: 1.75rem; }
+.pie-inicio .ir-visitas { margin-top: 0; }
+
+.ir-ajustes {
+  flex: 0 0 auto;
+  width: 56px;
+  background: transparent;
+  border: 1px dashed var(--borde);
+  font-size: 1.15rem;
+}
+
+.estado-oficina {
+  margin: .85rem 0 0;
+  padding: .6rem .8rem;
+  border-radius: var(--radio);
+  font-size: .82rem;
+  text-align: center;
+}
+.estado-oficina.aviso { color: var(--alarma); background: oklch(97% .03 30); }
+.estado-oficina.bien { color: var(--bien); background: oklch(97% .03 150); }
+.estado-oficina[hidden] { display: none; }
+
+#pantalla-ajustes input { margin-bottom: 1.1rem; }
+#aj-comprobar { width: 100%; }
+
+.peligro { color: var(--alarma); width: 100%; margin-top: .6rem; }
+.peligro[hidden] { display: none; }
+
+.estado-ajustes {
+  margin: -.35rem 0 1rem;
+  padding: .7rem .85rem;
+  border-radius: var(--radio);
+  font-size: .875rem;
+}
+.estado-ajustes.bien { color: var(--bien); background: oklch(97% .03 150); }
+.estado-ajustes.mal { color: var(--alarma); background: oklch(97% .03 30); }
+.estado-ajustes.neutro { color: var(--tenue); background: white; border: 1px solid var(--borde); }
+.estado-ajustes[hidden] { display: none; }
+
+/* El aviso de seguridad no es letra pequeña: es la condición para que esto
+   sea seguro, y el técnico tiene que poder leerla sin esfuerzo. */
+.nota-seguridad {
+  margin-top: 2rem;
+  padding: 1rem 1.1rem;
+  background: white;
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--acento);
+  border-radius: var(--radio);
+  font-size: .85rem;
+  line-height: 1.55;
+  color: var(--tenue);
+}
+.nota-seguridad p { margin: 0 0 .7rem; }
+.nota-seguridad p:last-child { margin-bottom: 0; }
+.nota-seguridad strong { color: var(--texto); }
+
+.subir-todas { width: 100%; margin-bottom: 1rem; }
+.subir-todas[hidden] { display: none; }
+
+.subir-esta { width: 100%; margin-top: 1.25rem; }
+.subir-esta[hidden] { display: none; }
+
+.dato.subida { color: var(--bien); border-color: currentColor; }

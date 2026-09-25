@@ -51,3 +51,12 @@ test('CONTROL NEGATIVO · el número de caché sube cuando cambia la lista', () 
   assert.ok(version, 'la caché tiene que llevar número de versión');
   assert.ok(Number(version[1]) >= 4, 'al añadir un fichero hay que subir el número, o el móvil sigue sirviendo la versión vieja');
 });
+
+test('el service worker NO toca las peticiones a otros dominios', () => {
+  const manejador = sw.slice(sw.indexOf("addEventListener('fetch'"));
+  assert.match(manejador, /origin !== self\.location\.origin/,
+    'una respuesta de la API guardada en caché haría dar por subida una visita que no subió');
+  const corte = manejador.indexOf('origin !== self.location.origin');
+  assert.ok(corte < manejador.indexOf('respondWith'),
+    'la comprobación va ANTES de responder desde la caché, o no sirve de nada');
+});

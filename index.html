@@ -25,13 +25,52 @@
       <h2 class="titulo-menu">¿Qué vas a hacer?</h2>
       <ul id="menu-actividades" class="menu"></ul>
 
-      <button id="ver-visitas" type="button" class="ir-visitas">
-        📁 Mis visitas<span id="cuenta-visitas" class="pastilla" hidden></span>
+      <div class="pie-inicio">
+        <button id="ver-visitas" type="button" class="ir-visitas">
+          📁 Mis visitas<span id="cuenta-visitas" class="pastilla" hidden></span>
+        </button>
+        <button id="ver-ajustes" type="button" class="ir-ajustes" aria-label="Ajustes">⚙️</button>
+      </div>
+      <p id="estado-oficina" class="estado-oficina" hidden></p>
+    </section>
+
+    <section id="pantalla-ajustes" hidden>
+      <h2 class="titulo-menu">La oficina</h2>
+
+      <label for="aj-tecnico">Tu nombre</label>
+      <input id="aj-tecnico" type="text" autocomplete="off" placeholder="Juan">
+
+      <label for="aj-repo">Repositorio de datos (privado)</label>
+      <input id="aj-repo" type="text" autocomplete="off" spellcheck="false"
+             placeholder="josecrea/okservice-captura-datos">
+
+      <label for="aj-testigo">Testigo de acceso</label>
+      <input id="aj-testigo" type="password" autocomplete="off" spellcheck="false"
+             placeholder="github_pat_…">
+
+      <p id="estado-ajustes" class="estado-ajustes" hidden></p>
+
+      <button id="aj-comprobar" type="button">Comprobar y guardar</button>
+      <button id="aj-olvidar" type="button" class="secundario peligro" hidden>
+        Olvidar en este móvil
       </button>
+
+      <div class="nota-seguridad">
+        <p><strong>El testigo se queda en este móvil.</strong> No viaja en la
+        aplicación: este código es público y ahí no puede haber ninguna clave.</p>
+        <p>Por eso el testigo tiene que dar acceso <strong>solo</strong> al
+        repositorio de datos, con permiso de contenido de lectura y escritura,
+        y <strong>con fecha de caducidad</strong>. Si se pierde el móvil, se
+        revoca desde GitHub y deja de valer.</p>
+        <p>El repositorio de datos tiene que ser <strong>privado</strong>: ahí
+        van fotos de casas de clientes. La aplicación lo comprueba y se niega
+        a subir a uno público.</p>
+      </div>
     </section>
 
     <section id="pantalla-visitas" hidden>
       <p id="resumen-almacen" class="resumen-almacen"></p>
+      <button id="subir-todas" type="button" class="subir-todas" hidden></button>
       <ul id="lista-visitas" class="visitas"></ul>
       <p id="sin-visitas" class="vacio" hidden>
         Todavía no hay ninguna visita guardada. Las que hagas se quedan en este
@@ -53,6 +92,8 @@
     <section id="pantalla-final" hidden>
       <h2 id="titulo-final">Visita terminada</h2>
       <p id="veredicto"></p>
+
+      <button id="subir-esta" type="button" class="subir-esta" hidden></button>
 
       <div class="salidas">
         <button id="compartir" type="button" disabled>Preparando el informe…</button>

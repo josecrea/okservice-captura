@@ -23,7 +23,8 @@ export function resumirVisita(sesion, catalogo = []) {
     fotos: fotos.length,
     bytes: fotos.reduce((total, r) => total + (r.bytes ?? 0), 0),
     sinResolver: valores.filter(r => r?.origen === 'no_pudo').length,
-    terminada: Boolean(sesion?.terminada)
+    terminada: Boolean(sesion?.terminada),
+    subida: Boolean(sesion?.subida?.commit)
   };
 }
 

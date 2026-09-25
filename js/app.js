@@ -9,12 +9,18 @@ import { leerFotos } from './fotos.js';
 import { compartir, descargar, imprimir } from './salidas.js';
 import { pintarVisitas } from './pantalla-visitas.js';
 import { resumirVisita, formatearPeso } from './visitas.js';
+import { cablearAjustes } from './pantalla-ajustes.js';
+import { leerAjustes, hayCredencial } from './credencial.js';
+import { destinoActivo } from './destino.js';
+import { estaSubida, pendientesDe, subirVisita, subirPendientes } from './nube.js';
 
 let guion = null;
 let sesion = null;
 let indice = 0;
 let catalogo = [];
 let informeActual = null;
+let ajustes = null;
+let subiendo = false;
 const camara = new Camara();
 
 const $ = id => document.getElementById(id);
@@ -39,7 +45,24 @@ async function arrancar() {
   $('pdf').addEventListener('click', imprimirInforme);
   $('ver-informe').addEventListener('click', verInforme);
 
+  $('ver-ajustes').addEventListener('click', abrirAjustes);
+  $('subir-esta').addEventListener('click', subirLaDeAhora);
+  $('subir-todas').addEventListener('click', subirLasPendientes);
+
+  ajustes = cablearAjustes({
+    campos: { tecnico: $('aj-tecnico'), repo: $('aj-repo'), testigo: $('aj-testigo') },
+    boton: $('aj-comprobar'),
+    olvidar: $('aj-olvidar'),
+    estado: $('estado-ajustes'),
+    alCambiar: refrescarEstadoOficina
+  });
+
+  // Lo que se capturó sin cobertura sube solo en cuanto vuelve, sin que el
+  // técnico tenga que acordarse. Solo visitas ya terminadas por él.
+  window.addEventListener('online', () => subirLasPendientes({ silencioso: true }));
+
   contarVisitas();
+  refrescarEstadoOficina();
 }
 
 function pintarMenu(actividades) {
@@ -103,8 +126,115 @@ function entrarEnLaVisita() {
 }
 
 function mostrarPantalla(cual) {
-  for (const id of ['pantalla-inicio', 'pantalla-visitas', 'pantalla-paso', 'pantalla-final']) {
+  for (const id of ['pantalla-inicio', 'pantalla-visitas', 'pantalla-ajustes', 'pantalla-paso', 'pantalla-final']) {
     $(id).hidden = id !== cual;
+  }
+}
+
+// ── La oficina ──────────────────────────────────────────────────────────
+
+function abrirAjustes() {
+  ajustes.cargar();
+  $('cabecera').textContent = 'Ajustes';
+  $('progreso').textContent = '';
+  $('ir-menu').hidden = false;
+  mostrarPantalla('pantalla-ajustes');
+}
+
+// El estado de la oficina se dice en el inicio, no escondido en ajustes: un
+// técnico que lleva seis visitas sin subir tiene que verlo al abrir la app.
+async function refrescarEstadoOficina() {
+  const letrero = $('estado-oficina');
+
+  if (!hayCredencial()) {
+    letrero.textContent = '⚠️ Sin conectar con la oficina · las visitas se quedan en este móvil';
+    letrero.className = 'estado-oficina aviso';
+    letrero.hidden = false;
+    return;
+  }
+
+  let pendientes = [];
+  let cuantas = 0;
+  try {
+    const sesiones = await listarSesiones();
+    cuantas = sesiones.length;
+    pendientes = pendientesDe(sesiones);
+  } catch {
+    letrero.hidden = true;
+    return;
+  }
+
+  // Sin una sola visita, «todo subido» es cierto y no dice nada.
+  if (cuantas === 0) {
+    letrero.hidden = true;
+    return;
+  }
+
+  letrero.textContent = pendientes.length
+    ? `☁️ ${pendientes.length} ${pendientes.length === 1 ? 'visita sin subir' : 'visitas sin subir'} a la oficina`
+    : '✅ Todo subido a la oficina';
+  letrero.className = `estado-oficina ${pendientes.length ? 'aviso' : 'bien'}`;
+  letrero.hidden = false;
+}
+
+function avisarSinCredencial() {
+  alert('Este móvil todavía no está conectado con la oficina.\n\nEntra en Ajustes (⚙️) y pon el repositorio de datos y el testigo.');
+  abrirAjustes();
+}
+
+async function subirLaDeAhora() {
+  if (!hayCredencial()) return avisarSinCredencial();
+  if (subiendo) return;
+
+  const boton = $('subir-esta');
+  subiendo = true;
+  boton.disabled = true;
+  boton.textContent = '☁️ Subiendo…';
+
+  try {
+    const { fallidas } = await subirVisita(sesion, destinoActivo());
+    boton.textContent = fallidas.length
+      ? `✅ Subida · ${fallidas.length} sin foto`
+      : '✅ Ya está en la oficina';
+  } catch (e) {
+    boton.disabled = false;
+    boton.textContent = '☁️ Subir a la oficina';
+    alert(`No se pudo subir:\n\n${e.message}\n\nLa visita sigue guardada en el móvil.`);
+  } finally {
+    subiendo = false;
+    contarVisitas();
+    refrescarEstadoOficina();
+  }
+}
+
+async function subirLasPendientes({ silencioso = false } = {}) {
+  if (!hayCredencial()) return silencioso ? undefined : avisarSinCredencial();
+  if (subiendo) return;
+
+  const sesiones = await listarSesiones().catch(() => []);
+  const cola = pendientesDe(sesiones);
+  if (cola.length === 0) return;
+
+  const boton = $('subir-todas');
+  subiendo = true;
+  boton.disabled = true;
+
+  const parte = await subirPendientes(sesiones, destinoActivo(), ({ hecho, total }) => {
+    boton.textContent = `☁️ Subiendo ${Math.min(hecho + 1, total)} de ${total}…`;
+  });
+
+  subiendo = false;
+  boton.disabled = false;
+  contarVisitas();
+  refrescarEstadoOficina();
+  if (!$('pantalla-visitas').hidden) await abrirVisitas();
+
+  // Lo que ha fallado se dice siempre, aunque la tanda fuese automática: una
+  // subida que se da por hecha y no ocurrió es peor que no haberla intentado.
+  if (parte.fallos.length) {
+    alert(`Subieron ${parte.subidas.length} de ${parte.total}.\n\nNo pudo subir:\n${parte.fallos.map(f => `· ${f.sesion.cliente || f.sesion.id}: ${f.error}`).join('\n')}`);
+  } else if (!silencioso) {
+    alert(`Subidas ${parte.subidas.length} ${parte.subidas.length === 1 ? 'visita' : 'visitas'} a la oficina.`);
   }
 }
 
@@ -190,8 +320,29 @@ async function abrirVisitas() {
     catalogo,
     alSeguir: seguirVisita,
     alVerInforme: abrirInformeDe,
-    alBorrar: borrarVisita
+    alBorrar: borrarVisita,
+    alSubir: subirUna
   });
+
+  const cola = pendientesDe(sesiones);
+  const boton = $('subir-todas');
+  boton.hidden = cola.length < 2;
+  boton.textContent = `☁️ Subir las ${cola.length} pendientes`;
+}
+
+async function subirUna(guardada, boton) {
+  if (!hayCredencial()) return avisarSinCredencial();
+  boton.disabled = true;
+  boton.textContent = '☁️ Subiendo…';
+  try {
+    await subirVisita(guardada, destinoActivo());
+    await abrirVisitas();
+    refrescarEstadoOficina();
+  } catch (e) {
+    boton.disabled = false;
+    boton.textContent = '☁️ Subir';
+    alert(`No se pudo subir:\n\n${e.message}\n\nLa visita sigue guardada en el móvil.`);
+  }
 }
 
 async function seguirVisita(guardada) {
@@ -574,11 +725,31 @@ function mostrarFinal() {
   // Una visita que se reabre desde el historial puede no estar cerrada, y
   // llamarla «terminada» haría creer que ya no falta nada por ir a ver.
   $('titulo-final').textContent = sesion.terminada ? 'Visita terminada' : 'Visita a medias';
+  pintarBotonSubir();
   $('veredicto').innerHTML = veredicto.puedePresupuestar
     ? `<span class="completo">${textos.bien}</span>`
     : `<span class="hueco">${textos.mal(veredicto.ejesAbiertos)}</span>`;
 
   prepararInforme();
+}
+
+// Una visita a medias no se ofrece subir: en la oficina parecería una
+// instalación vista entera. Y la que ya subió lo dice en vez de ofrecerlo otra
+// vez, que dejaría dos copias de la misma visita arriba.
+function pintarBotonSubir() {
+  const boton = $('subir-esta');
+  boton.hidden = !sesion.terminada;
+  if (!sesion.terminada) return;
+
+  if (estaSubida(sesion)) {
+    boton.disabled = true;
+    boton.textContent = '✅ Ya está en la oficina';
+    return;
+  }
+  boton.disabled = false;
+  boton.textContent = hayCredencial()
+    ? '☁️ Subir a la oficina'
+    : '⚙️ Conectar con la oficina para subirla';
 }
 
 // Vuelve a abrir el informe de una visita ya guardada, desde el historial.

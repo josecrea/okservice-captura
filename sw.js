@@ -1,6 +1,6 @@
 // Cachea la aplicación para que arranque sin cobertura.
 // Sube el número de CACHE cada vez que cambien los ficheros de la lista.
-const CACHE = 'okservice-captura-v5';
+const CACHE = 'okservice-captura-v7';
 
 const FICHEROS = [
   './',
@@ -20,6 +20,11 @@ const FICHEROS = [
   './js/salidas.js',
   './js/visitas.js',
   './js/pantalla-visitas.js',
+  './js/credencial.js',
+  './js/destino.js',
+  './js/destino-github.js',
+  './js/nube.js',
+  './js/pantalla-ajustes.js',
   './guiones/index.json',
   './guiones/irve.json',
   './guiones/cie.json',
@@ -44,6 +49,16 @@ self.addEventListener('activate', evento => {
 
 self.addEventListener('fetch', evento => {
   if (evento.request.method !== 'GET') return;
+
+  // Solo se sirve de la caché lo que es de esta aplicación.
+  //
+  // Las llamadas a la oficina tienen que llegar a la oficina SIEMPRE. Si una
+  // respuesta suya se quedara guardada, la aplicación podría dar por subida
+  // una visita que no subió — y un respaldo que no existe y nadie sabe que no
+  // existe es peor que no tener respaldo.
+  const url = new URL(evento.request.url);
+  if (url.origin !== self.location.origin) return;
+
   evento.respondWith(
     caches.match(evento.request).then(guardado => guardado ?? fetch(evento.request))
   );
