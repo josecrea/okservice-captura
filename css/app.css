@@ -23,6 +23,23 @@ body {
 
 header { margin-bottom: 1.5rem; }
 h1 { font-size: 1.25rem; margin: 0 0 .25rem; }
+
+/* La salida de vuelta al menú. Dedo con guante: 44 px de alto y separada
+   del título, para que no se pulse al ir a leer el paso.
+   El display explícito anula el hidden del HTML: hay que devolvérselo. */
+.ir-menu {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: .85rem;
+  padding: .55rem .95rem;
+  min-height: 44px;
+  font-size: .9rem;
+  background: transparent;
+  color: var(--tenue);
+  border: 1px solid var(--borde);
+}
+.ir-menu[hidden] { display: none; }
+.ir-menu:active { border-color: var(--acento); color: var(--acento); }
 h2 { font-size: 1.4rem; margin: 0 0 .5rem; line-height: 1.25; }
 #progreso { margin: 0; color: var(--tenue); font-size: .875rem; }
 #paso-ayuda { color: var(--tenue); margin: 0 0 1.25rem; }

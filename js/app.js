@@ -1,9 +1,10 @@
 import { validarGuion } from './guion.js';
 import { evaluar } from './compuerta.js';
 import { comprimirFoto, calcularDimensiones, CALIDAD } from './comprimir.js';
-import { guardarSesion } from './almacen.js';
+import { guardarSesion, listarSesiones, borrarSesion } from './almacen.js';
 import { construirInforme } from './informe.js';
 import { Camara } from './camara.js';
+import { buscarPendiente, contarDatos, tieneTrabajo, pasoAlQueVolver } from './reanudar.js';
 
 let guion = null;
 let sesion = null;
@@ -22,7 +23,8 @@ async function arrancar() {
   $('atras').addEventListener('click', () => avanzar(-1));
   $('saltar').addEventListener('click', noPude);
   $('ver-informe').addEventListener('click', verInforme);
-  $('otra').addEventListener('click', () => location.reload());
+  $('ir-menu').addEventListener('click', volverAlMenu);
+  $('otra').addEventListener('click', volverAlMenu);
 }
 
 function pintarMenu(actividades) {
@@ -51,28 +53,87 @@ async function empezar(idActividad) {
     return;
   }
 
-  sesion = {
-    id: `${guion.id}-${Date.now()}`,
-    guion: guion.id,
-    cliente: $('cliente').value.trim(),
-    creada: new Date().toISOString(),
-    respuestas: {}
-  };
-  indice = 0;
+  const reanudada = await ofrecerContinuar(guion);
+  if (reanudada) {
+    sesion = reanudada;
+    indice = pasoAlQueVolver(guion, reanudada);
+    $('cliente').value = reanudada.cliente ?? '';
+  } else {
+    sesion = {
+      id: `${guion.id}-${Date.now()}`,
+      guion: guion.id,
+      cliente: $('cliente').value.trim(),
+      creada: new Date().toISOString(),
+      respuestas: {}
+    };
+    indice = 0;
+  }
 
   $('cabecera').textContent = guion.titulo;
+  $('ir-menu').hidden = false;
   $('pantalla-inicio').hidden = true;
   $('pantalla-paso').hidden = false;
   pintarPaso();
-  pedirUbicacion();
+  if (!sesion.gps) pedirUbicacion();
+}
+
+// Si quedó una visita a medias de esta misma actividad, se pregunta. Elegir
+// por él sería peor de las dos maneras: reabrir siempre mezcla la visita de
+// un cliente con la del siguiente, y empezar siempre tira fotos ya hechas.
+async function ofrecerContinuar(guion) {
+  let pendiente = null;
+  try {
+    pendiente = buscarPendiente(await listarSesiones(), guion.id);
+  } catch {
+    return null;   // sin almacén se empieza de cero, que es lo de antes
+  }
+  if (!pendiente) return null;
+
+  const cliente = pendiente.cliente ? ` de «${pendiente.cliente}»` : '';
+  const datos = contarDatos(pendiente);
+  const seguir = confirm(
+    `Tienes una visita a medias${cliente} con ${datos} ${datos === 1 ? 'dato guardado' : 'datos guardados'}.\n\n` +
+    `Aceptar: sigues donde la dejaste.\n` +
+    `Cancelar: empiezas una visita nueva (la otra se queda guardada).`
+  );
+  return seguir ? pendiente : null;
+}
+
+// La salida al menú. No pide confirmación porque no hay nada que confirmar:
+// cada foto y cada desplegable ya está escrito en el móvil, y al volver a
+// entrar en la actividad se ofrece continuar por este mismo paso.
+async function volverAlMenu() {
+  camara.cerrar($('video-camara'));
+
+  // Una sesión sin un solo dato no es una visita: es un toque en el menú.
+  // Guardarla dejaría basura en el móvil y ensuciaría el «continuar».
+  if (sesion && !tieneTrabajo(sesion) && !sesion.terminada) {
+    await borrarSesion(sesion.id).catch(() => {});
+  }
+
+  guion = null;
+  sesion = null;
+  indice = 0;
+
+  $('pantalla-paso').hidden = true;
+  $('pantalla-final').hidden = true;
+  $('pantalla-inicio').hidden = false;
+  $('ir-menu').hidden = true;
+  $('cabecera').textContent = 'Captura guiada';
+  $('progreso').textContent = '';
 }
 
 function pedirUbicacion() {
   if (!navigator.geolocation) return;
+
+  // La sesión se captura aquí y no se lee de la global: el GPS puede tardar
+  // diez segundos, y para entonces el técnico puede haberse ido al menú.
+  const suya = sesion;
   navigator.geolocation.getCurrentPosition(
     pos => {
-      sesion.gps = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-      guardarSesion(sesion);
+      suya.gps = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      // Si esa visita ya se abandonó vacía, la posición no la resucita.
+      if (suya === sesion || tieneTrabajo(suya)) guardarSesion(suya).catch(() => {});
     },
     () => { /* sin GPS se sigue: el municipio se teclea */ },
     { timeout: 10000 }
@@ -83,6 +144,14 @@ function pedirUbicacion() {
 
 function pintarPaso() {
   camara.cerrar($('video-camara'));
+
+  // Dónde está el técnico, para poder devolverlo aquí si sale al menú.
+  // Solo cuando ya hay algo dentro: guardar una sesión sin un dato dejaría
+  // visitas fantasma en el móvil.
+  if (tieneTrabajo(sesion)) {
+    sesion.indice = indice;
+    guardarSesion(sesion).catch(() => {});
+  }
 
   const paso = guion.pasos[indice];
   $('progreso').textContent = `Paso ${indice + 1} de ${guion.pasos.length}`;
